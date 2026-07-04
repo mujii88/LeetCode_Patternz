@@ -2,9 +2,9 @@
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,18,24,30,36&height=200&section=header&text=LeetCode%20Patternz&fontSize=52&fontColor=fff&animation=fadeIn&fontAlignY=38&desc=Interview-Ready%20Algorithm%20Pattern%20Guide&descAlignY=62&descSize=18" width="100%"/>
 
-<img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&weight=600&size=22&duration=2800&pause=1200&color=7C6AFF&center=true&vCenter=true&multiline=true&width=700&lines=27+Patterns+%E2%80%A2+5+Tiers+%E2%80%A2+FAANG-Ready;Signal+Recognition+%E2%80%A2+Templates+%E2%80%A2+Curated+Problems;Two+Pointers+%E2%86%92+Fenwick+Trees+%E2%80%94+Master+Every+Architecture" alt="Typing animation" />
+<img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&weight=600&size=22&duration=2800&pause=1200&color=7C6AFF&center=true&vCenter=true&multiline=true&width=700&height=110&lines=27+Patterns+%E2%80%A2+5+Tiers+%E2%80%A2+FAANG-Ready;Signal+Recognition+%E2%80%A2+Templates+%E2%80%A2+Curated+Problems;Two+Pointers+%E2%86%92+Fenwick+Trees+%E2%80%94+Master+Every+Architecture" alt="Typing animation" />
 
-<br/>
+<br/><br/><br/>
 
 [![Patterns](https://img.shields.io/badge/Patterns-27-7C6AFF?style=for-the-badge&logo=leetcode&logoColor=white)](LeetCode_patternz.html)
 [![Tiers](https://img.shields.io/badge/Tiers-5-6AFFD4?style=for-the-badge)](LeetCode_patternz.html)
