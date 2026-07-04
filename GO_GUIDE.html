@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go — The Complete Developer Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0e17;
+    --bg2:      #0f1420;
+    --bg3:      #141926;
+    --bg4:      #1a2133;
+    --border:   rgba(0,210,160,0.12);
+    --border2:  rgba(0,210,160,0.25);
+    --glow:     #00d2a0;
+    --glow2:    #00aaff;
+    --glow3:    #ff6b6b;
+    --glow4:    #ffd93d;
+    --glow5:    #c77dff;
+    --text:     #e2e8f0;
+    --text2:    #94a3b8;
+    --text3:    #64748b;
+    --kw:       #00d2a0;
+    --str:      #ffd93d;
+    --fn:       #00aaff;
+    --typ:      #c77dff;
+    --num:      #ff9f43;
+    --cmt:      #4a5568;
+    --radius:   12px;
+    --radius2:  8px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,210,160,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,210,160,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── AMBIENT ORBS ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.18;
+    animation: orbFloat 12s ease-in-out infinite alternate;
+  }
+  .orb1 { width: 600px; height: 600px; background: #00d2a0; top: -200px; left: -200px; animation-delay: 0s; }
+  .orb2 { width: 500px; height: 500px; background: #00aaff; bottom: -150px; right: -150px; animation-delay: -6s; }
+  .orb3 { width: 300px; height: 300px; background: #c77dff; top: 40%; left: 50%; animation-delay: -3s; }
+
+  @keyframes orbFloat {
+    0%   { transform: translate(0,0) scale(1); }
+    100% { transform: translate(40px,30px) scale(1.08); }
+  }
+
+  /* ── WRAPPER ── */
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 28px 80px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 0 60px;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--glow);
+    margin-bottom: 24px;
+    padding: 6px 14px;
+    border: 1px solid rgba(0,210,160,0.3);
+    border-radius: 100px;
+    background: rgba(0,210,160,0.06);
+    animation: fadeSlide 0.6s ease both;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--glow);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--glow);
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(42px, 7vw, 80px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    animation: fadeSlide 0.6s 0.1s ease both;
+  }
+
+  .hero h1 .go-word {
+    background: linear-gradient(135deg, #00d2a0, #00aaff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    color: var(--text2);
+    margin-top: 20px;
+    max-width: 600px;
+    line-height: 1.6;
+    font-weight: 400;
+    animation: fadeSlide 0.6s 0.2s ease both;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+    animation: fadeSlide 0.6s 0.3s ease both;
+  }
+
+  .meta-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text2);
+    padding: 8px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+  }
+
+  .meta-pill .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .dot-green  { background: var(--glow);  box-shadow: 0 0 6px var(--glow); }
+  .dot-blue   { background: var(--glow2); box-shadow: 0 0 6px var(--glow2); }
+  .dot-purple { background: var(--glow5); box-shadow: 0 0 6px var(--glow5); }
+  .dot-yellow { background: var(--glow4); box-shadow: 0 0 6px var(--glow4); }
+
+  /* ── NAV TABS ── */
+  .nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,23,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    margin: 0 -28px;
+    animation: fadeSlide 0.5s 0.4s ease both;
+  }
+
+  .nav-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 28px;
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text3);
+    background: transparent;
+    border: none;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: color 0.2s;
+    position: relative;
+    letter-spacing: 0.02em;
+  }
+
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--glow);
+    box-shadow: 0 0 10px var(--glow);
+    transform: scaleX(0);
+    transition: transform 0.2s;
+  }
+
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--glow); }
+  .tab-btn.active::after { transform: scaleX(1); }
+
+  /* ── SECTIONS ── */
+  .section { display: none; padding-top: 56px; }
+  .section.visible { display: block; }
+
+  .section-header {
+    margin-bottom: 48px;
+    animation: fadeSlide 0.4s ease both;
+  }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--glow);
+    margin-bottom: 10px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── TOPIC CARD ── */
+  .topic-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 32px;
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    animation: fadeSlide 0.5s ease both;
+    position: relative;
+  }
+
+  .topic-card:hover {
+    border-color: var(--border2);
+    box-shadow: 0 0 40px rgba(0,210,160,0.06);
+  }
+
+  .topic-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glow), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .topic-card:hover::before { opacity: 1; }
+
+  .card-header {
+    padding: 22px 28px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .badge-green  { background: rgba(0,210,160,0.1);  color: #00d2a0; border: 1px solid rgba(0,210,160,0.25); }
+  .badge-blue   { background: rgba(0,170,255,0.1);  color: #00aaff; border: 1px solid rgba(0,170,255,0.25); }
+  .badge-purple { background: rgba(199,125,255,0.1);color: #c77dff; border: 1px solid rgba(199,125,255,0.25); }
+  .badge-yellow { background: rgba(255,217,61,0.1); color: #ffd93d; border: 1px solid rgba(255,217,61,0.25); }
+  .badge-red    { background: rgba(255,107,107,0.1);color: #ff6b6b; border: 1px solid rgba(255,107,107,0.25); }
+  .badge-orange { background: rgba(255,159,67,0.1); color: #ff9f43; border: 1px solid rgba(255,159,67,0.25); }
+
+  .card-body {
+    padding: 16px 28px 24px;
+  }
+
+  .explain {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    color: var(--text2);
+    line-height: 1.75;
+    margin-bottom: 20px;
+    font-weight: 400;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: var(--bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: var(--radius2);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .code-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .code-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .code-dots span {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  .cd1 { background: #ff5f57; }
+  .cd2 { background: #febc2e; }
+  .cd3 { background: #28c840; }
+
+  .code-lang {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .code-block {
+    padding: 20px 20px;
+    font-size: 13px;
+    line-height: 1.85;
+    overflow-x: auto;
+    white-space: pre;
+    tab-size: 4;
+  }
+
+  .kw  { color: var(--kw);  font-weight: 500; }
+  .str { color: var(--str); }
+  .fn  { color: var(--fn); }
+  .typ { color: var(--typ); }
+  .num { color: var(--num); }
+  .cmt { color: var(--cmt); font-style: italic; }
+  .op  { color: #e2e8f0; opacity: 0.6; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    display: flex;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: var(--radius2);
+    margin-top: 16px;
+    align-items: flex-start;
+  }
+
+  .callout-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .callout-content { font-size: 13px; line-height: 1.7; font-family: 'Syne', sans-serif; font-weight: 400; }
+  .callout-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
+
+  .callout-tip    { background: rgba(0,210,160,0.07);  border: 1px solid rgba(0,210,160,0.2); }
+  .callout-tip    .callout-label { color: var(--glow); }
+  .callout-tip    .callout-content { color: #a7e9d5; }
+
+  .callout-warn   { background: rgba(255,217,61,0.07); border: 1px solid rgba(255,217,61,0.2); }
+  .callout-warn   .callout-label { color: var(--glow4); }
+  .callout-warn   .callout-content { color: #ffe89a; }
+
+  .callout-interview { background: rgba(199,125,255,0.07); border: 1px solid rgba(199,125,255,0.2); }
+  .callout-interview .callout-label { color: var(--glow5); }
+  .callout-interview .callout-content { color: #e4c4ff; }
+
+  .interview-q { margin-bottom: 10px; }
+  .interview-q strong { display: block; color: var(--glow5); margin-bottom: 4px; }
+  .interview-a strong { display: block; color: #a78bfa; margin-bottom: 4px; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border2), transparent);
+    margin: 40px 0;
+  }
+
+  /* ── TYPE TABLE ── */
+  .type-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 16px 0;
+  }
+
+  .type-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  .type-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: middle;
+  }
+
+  .type-table tr:last-child td { border-bottom: none; }
+
+  .type-name { color: var(--typ); font-weight: 500; }
+  .type-size { color: var(--num); }
+  .type-desc { color: var(--text2); font-family: 'Syne', sans-serif; font-size: 13px; }
+  .type-eg   { color: var(--str); font-size: 12px; }
+
+  .type-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── COMPARISON GRID ── */
+  .comp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .comp-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 16px;
+  }
+
+  .comp-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+
+  /* ── HIGHLIGHT CHIP ── */
+  code {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--glow);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 80px;
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .footer p {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'Syne', sans-serif;
+  }
+
+  .footer .brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+
+  .footer .brand .go-text {
+    color: var(--glow);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .delay-1 { animation-delay: 0.05s; }
+  .delay-2 { animation-delay: 0.10s; }
+  .delay-3 { animation-delay: 0.15s; }
+  .delay-4 { animation-delay: 0.20s; }
+  .delay-5 { animation-delay: 0.25s; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .comp-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 40px; }
+    .code-block { font-size: 12px; }
+    .hero-meta { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="wrapper">
+
+  <!-- ───── HERO ───── -->
+  <div class="hero">
+    <div class="hero-eyebrow">Statically Typed · Compiled · Concurrent</div>
+    <h1><span class="go-word">Go</span><br>Developer's Bible</h1>
+    <p class="hero-sub">
+      A complete reference covering types, control flow, data structures,
+      functions, structs, interfaces, and Unicode — with interview prep and real examples.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-pill"><span class="dot dot-green"></span> Core Concepts</div>
+      <div class="meta-pill"><span class="dot dot-blue"></span> Code Examples</div>
+      <div class="meta-pill"><span class="dot dot-purple"></span> Interview Prep</div>
+      <div class="meta-pill"><span class="dot dot-yellow"></span> Pro Tips</div>
+    </div>
+  </div>
+
+  <!-- ───── NAV ───── -->
+  <div class="nav-wrap">
+    <div class="nav-inner" id="nav"></div>
+  </div>
+
+  <!-- ───── CONTENT ───── -->
+  <div id="content"></div>
+
+  <!-- ───── FOOTER ───── -->
+  <div class="footer">
+    <div class="brand"><span class="go-text">go</span> · developer guide</div>
+    <p>Built for deep understanding. Study it, revise it, ship great software.</p>
+  </div>
+
+</div>
+
+<script>
+const sections = [
+
+// ──────────────────────────────────────────────
+//  SECTION 1 — BASICS
+// ──────────────────────────────────────────────
+{
+  id: 'basics', label: '01 · Basics',
+  title: 'The Go Language',
+  eyebrow: 'Fundamentals',
+  cards: [
+    {
+      title: 'What is Go?',
+      badge: { text: 'Foundation', cls: 'badge-green' },
+      explain: `Go (Golang) is a statically typed, compiled language created at Google in 2009. It combines the execution speed of C with the readability of modern languages. There is no virtual machine — the compiler produces a single native binary. Go was built specifically for CLIs, backend APIs, DevOps tooling, microservices, and cloud-native infrastructure.`,
+      code: `<span class="cmt">// Static typing → all types are known at compile time</span>
+<span class="cmt">// Compiled      → go build produces a standalone native binary</span>
+<span class="cmt">// No VM         → unlike Java or Python, no interpreter needed at runtime</span>
+
+<span class="cmt">// Compile a Go file to a binary:</span>
+go build main.go       <span class="cmt">// produces ./main (Linux/Mac) or main.exe (Windows)</span>
+
+<span class="cmt">// Run directly (compile + execute in one step):</span>
+go run main.go
+
+<span class="cmt">// Minimal "Hello, World!" program:</span>
+<span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    fmt.<span class="fn">Println</span>(<span class="str">"Hello, Go!"</span>)
+}`,
+      tip: { icon: '💡', text: 'go run is for development. go build is for deployment. Always ship the binary — it contains everything needed with zero dependencies.' },
+      interview: {
+        q: 'Why is Go called statically typed? How does that differ from Python?',
+        a: 'In Go, every variable has a fixed type known at compile time. x := 42 makes x an int forever — you cannot later assign x = "hello". Python assigns types at runtime, so the same x can become a string. Static typing catches entire classes of bugs before the program ever runs, and enables the compiler to produce faster, safer machine code.'
+      }
+    },
+    {
+      title: 'All Types in Go',
+      badge: { text: 'Core Types', cls: 'badge-blue' },
+      explain: `Go's type system is explicit and memory-aware. Every type has a fixed size in memory. Choosing the right type matters for correctness and performance.`,
+      table: {
+        headers: ['Type', 'Size', 'Range / Notes', 'Example'],
+        rows: [
+          ['uint', '32/64-bit', 'Unsigned: 0 to 4 billion+. No negatives.', '42'],
+          ['int', '32/64-bit', 'Signed: -2⁶³ to 2⁶³-1', '-100, 0, 99'],
+          ['int8/16/32/64', 'fixed', 'Specific bit widths. Prefer int unless memory-critical.', 'int8(-128)'],
+          ['float32', '32-bit', '~7 decimal digits of precision', '3.14'],
+          ['float64', '64-bit', '~15 decimal digits. Default float type.', '3.14159265'],
+          ['byte', '8-bit', 'Alias for uint8. Raw bytes & ASCII characters.', "'A' = 65"],
+          ['rune', '32-bit', 'Alias for int32. One Unicode code point.', "'🚀' = 128640"],
+          ['string', 'varies', 'Immutable byte slice. Always double quotes.', '"hello"'],
+          ['bool', '1-bit', 'Only true or false. No 0/1 tricks.', 'true, false'],
+          ['nil', 'zero', 'Zero value for pointers, maps, slices, interfaces.', 'var p *int = nil'],
+        ]
+      },
+      code: `<span class="cmt">// Declare with explicit types (annotation)</span>
+<span class="kw">var</span> age    <span class="typ">int</span>     = <span class="num">25</span>
+<span class="kw">var</span> name   <span class="typ">string</span>  = <span class="str">"Sara"</span>
+<span class="kw">var</span> pi     <span class="typ">float64</span> = <span class="num">3.14159</span>
+<span class="kw">var</span> ch     <span class="typ">rune</span>    = <span class="str">'A'</span>
+<span class="kw">var</span> b      <span class="typ">byte</span>    = <span class="num">255</span>
+<span class="kw">var</span> active <span class="typ">bool</span>   = <span class="kw">true</span>`,
+      tip: { icon: '💡', text: 'Default for untyped integer literals is int. Default for floats is float64. Prefer float64 always — float32 loses precision for most calculations.' },
+      interview: {
+        q: 'What is the difference between byte and rune in Go?',
+        a: 'byte is uint8 — one ASCII character (1 byte, 256 values). rune is int32 — one Unicode code point (4 bytes, 4 billion values). If you index a string with s[i] you get a byte. This breaks for emoji, Arabic, Chinese, etc. Use rune (via range loop or []rune conversion) for any string with non-ASCII characters.'
+      }
+    },
+    {
+      title: 'Variables — Annotation vs Inference',
+      badge: { text: 'Variables', cls: 'badge-green' },
+      explain: `Go gives you two ways to declare variables. Type annotation is explicit — you write the type. Type inference (the := operator) lets the compiler figure it out. Both are idiomatic in the right context.`,
+      code: `<span class="cmt">// ── ANNOTATION (explicit type) ──</span>
+<span class="kw">var</span> name <span class="typ">string</span> = <span class="str">"Ali"</span>
+<span class="kw">var</span> age  <span class="typ">int</span>    = <span class="num">25</span>
+
+<span class="cmt">// ── INFERENCE (implicit, using :=) ──</span>
+name := <span class="str">"Ali"</span>     <span class="cmt">// inferred: string</span>
+age  := <span class="num">25</span>       <span class="cmt">// inferred: int</span>
+pi   := <span class="num">3.14</span>     <span class="cmt">// inferred: float64</span>
+ok   := <span class="kw">true</span>     <span class="cmt">// inferred: bool</span>
+
+<span class="cmt">// ── CONSTANTS — fixed at compile time ──</span>
+<span class="kw">const</span> MaxScore = <span class="num">100</span>
+<span class="kw">const</span> AppName <span class="typ">string</span> = <span class="str">"GoApp"</span>
+
+<span class="cmt">// ── TYPE CASTING — wrap value in target type ──</span>
+x := <span class="num">3.99</span>
+y := <span class="fn">int</span>(x)        <span class="cmt">// y = 3  (truncates, does NOT round)</span>
+z := <span class="fn">float64</span>(y)    <span class="cmt">// z = 3.0</span>
+s := <span class="fn">string</span>(<span class="num">65</span>)    <span class="cmt">// s = "A" (ASCII value 65)</span>
+r := <span class="fn">rune</span>(<span class="str">'A'</span>)     <span class="cmt">// r = 65  (rune to int)</span>
+
+<span class="cmt">// ── ZERO VALUES — Go initialises to zero by default ──</span>
+<span class="kw">var</span> n <span class="typ">int</span>       <span class="cmt">// n = 0</span>
+<span class="kw">var</span> s2 <span class="typ">string</span>   <span class="cmt">// s2 = ""</span>
+<span class="kw">var</span> f <span class="typ">float64</span>   <span class="cmt">// f = 0.0</span>
+<span class="kw">var</span> ok2 <span class="typ">bool</span>    <span class="cmt">// ok2 = false</span>`,
+      warn: { icon: '⚠️', text: 'You cannot redeclare a variable with := in the same scope. You can only reassign with =. Exception: if at least one variable on the left is new, := is allowed (e.g., result, err := fn() where err already exists but result is new).' },
+      interview: {
+        q: 'When would you use var instead of :=?',
+        a: 'Use var at the package level (outside any function) because := is only allowed inside function bodies. Also use var when you want to declare without assigning — var result string declares an empty string you\'ll fill later. Inside functions, := is always preferred for conciseness.'
+      }
+    },
+    {
+      title: 'fmt Package — Formatted I/O',
+      badge: { text: 'I/O', cls: 'badge-blue' },
+      explain: `The fmt (format) package is Go's standard I/O library. It provides multiple printing functions and a rich set of format verbs for precisely controlling output.`,
+      code: `<span class="kw">import</span> <span class="str">"fmt"</span>
+
+name := <span class="str">"Sara"</span>
+age  := <span class="num">28</span>
+pi   := <span class="num">3.14159</span>
+
+<span class="cmt">// Println → adds spaces between args, adds newline</span>
+fmt.<span class="fn">Println</span>(name, <span class="str">"is"</span>, age)     <span class="cmt">// Sara is 28</span>
+
+<span class="cmt">// Printf → formatted with verbs</span>
+fmt.<span class="fn">Printf</span>(<span class="str">"%s is %d years old\n"</span>, name, age)  <span class="cmt">// Sara is 28 years old</span>
+fmt.<span class="fn">Printf</span>(<span class="str">"Type: %T\n"</span>, age)         <span class="cmt">// Type: int</span>
+fmt.<span class="fn">Printf</span>(<span class="str">"Value: %v\n"</span>, pi)         <span class="cmt">// Value: 3.14159</span>
+fmt.<span class="fn">Printf</span>(<span class="str">"Decimal: %d\n"</span>, age)      <span class="cmt">// Decimal: 28</span>
+fmt.<span class="fn">Printf</span>(<span class="str">"Binary: %b\n"</span>, age)       <span class="cmt">// Binary: 11100</span>
+fmt.<span class="fn">Printf</span>(<span class="str">"Hex: %x\n"</span>, age)          <span class="cmt">// Hex: 1c</span>
+fmt.<span class="fn">Printf</span>(<span class="str">"Scientific: %e\n"</span>, pi)    <span class="cmt">// Scientific: 3.141590e+00</span>
+fmt.<span class="fn">Printf</span>(<span class="str">"2 decimals: %.2f\n"</span>, pi)   <span class="cmt">// 2 decimals: 3.14</span>
+
+<span class="cmt">// Sprintf → format into a string variable</span>
+msg := fmt.<span class="fn">Sprintf</span>(<span class="str">"Hello, %s! You are %d."</span>, name, age)
+fmt.<span class="fn">Println</span>(msg) <span class="cmt">// Hello, Sara! You are 28.</span>
+
+<span class="cmt">// Errorf → create formatted error values</span>
+err := fmt.<span class="fn">Errorf</span>(<span class="str">"invalid age: %d"</span>, <span class="num">-5</span>)
+fmt.<span class="fn">Println</span>(err) <span class="cmt">// invalid age: -5</span>`,
+      interview: {
+        q: 'What is the difference between Printf, Println, and Sprintf?',
+        a: 'Println adds spaces between arguments and a newline, no format verbs needed. Printf requires a format string with verbs (%s, %d, etc.) and does not auto-add newlines — you must write \\n. Sprintf works exactly like Printf but returns the formatted string instead of printing it, so you can store, pass, or log it.'
+      }
+    }
+  ]
+},
+
+// ──────────────────────────────────────────────
+//  SECTION 2 — CONTROL FLOW
+// ──────────────────────────────────────────────
+{
+  id: 'control', label: '02 · Control Flow',
+  title: 'Control Flow',
+  eyebrow: 'Conditionals & Loops',
+  cards: [
+    {
+      title: 'If / Else If / Else',
+      badge: { text: 'Conditionals', cls: 'badge-orange' },
+      explain: `Go if-statements do NOT need parentheses around conditions — they are an error of style if added. Braces {} are always required. Go also supports an init statement before the condition that scopes a variable to the block.`,
+      code: `score := <span class="num">75</span>
+
+<span class="cmt">// Basic if/else if/else</span>
+<span class="kw">if</span> score >= <span class="num">90</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"A grade"</span>)
+} <span class="kw">else if</span> score >= <span class="num">70</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"B grade"</span>) <span class="cmt">// ← this runs</span>
+} <span class="kw">else</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"Below B"</span>)
+}
+
+<span class="cmt">// Init statement — variable scoped ONLY to this if/else block</span>
+<span class="kw">if</span> result := score * <span class="num">2</span>; result > <span class="num">100</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"Doubled score exceeds 100"</span>)
+} <span class="kw">else</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"Result:"</span>, result)
+}
+<span class="cmt">// result is not accessible here — perfect scope isolation</span>
+
+<span class="cmt">// Go idiom: error check with init statement</span>
+<span class="kw">if</span> err := doSomething(); err != <span class="kw">nil</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"Error:"</span>, err)
+    <span class="kw">return</span>
+}`,
+      tip: { icon: '💡', text: 'Go has no ternary operator. x := condition ? a : b does not exist. Write a full if-else. This is intentional — Go values clarity over cleverness.' },
+      interview: {
+        q: 'What is the init statement in an if condition and why is it idiomatic in Go?',
+        a: 'The init statement lets you declare a variable that is scoped to the if-else block: if err := doSomething(); err != nil { ... }. After the block ends, err is gone. This is the standard Go error-checking pattern. It keeps scope tight, prevents variable leakage, and makes error-handling code more readable and self-contained.'
+      }
+    },
+    {
+      title: 'Switch Statements',
+      badge: { text: 'Conditionals', cls: 'badge-orange' },
+      explain: `Go switch is far more powerful than C/Java. Cases DO NOT fall through by default. You can match multiple values per case, use expression switches (no value), and use the fallthrough keyword explicitly when you need it.`,
+      code: `<span class="cmt">// Basic switch — no parentheses, no fall-through</span>
+day := <span class="str">"Monday"</span>
+<span class="kw">switch</span> day {
+<span class="kw">case</span> <span class="str">"Saturday"</span>, <span class="str">"Sunday"</span>:
+    fmt.<span class="fn">Println</span>(<span class="str">"Weekend!"</span>)
+<span class="kw">case</span> <span class="str">"Monday"</span>:
+    fmt.<span class="fn">Println</span>(<span class="str">"Work starts"</span>) <span class="cmt">// ← runs</span>
+<span class="kw">default</span>:
+    fmt.<span class="fn">Println</span>(<span class="str">"Midweek"</span>)
+}
+
+<span class="cmt">// Expression switch (no value) — acts like if/else chain</span>
+score := <span class="num">82</span>
+<span class="kw">switch</span> {
+<span class="kw">case</span> score >= <span class="num">90</span>:
+    fmt.<span class="fn">Println</span>(<span class="str">"A"</span>)
+<span class="kw">case</span> score >= <span class="num">70</span>:
+    fmt.<span class="fn">Println</span>(<span class="str">"B"</span>) <span class="cmt">// ← this runs</span>
+<span class="kw">default</span>:
+    fmt.<span class="fn">Println</span>(<span class="str">"C"</span>)
+}
+
+<span class="cmt">// fallthrough — explicitly run the NEXT case body too</span>
+x := <span class="num">1</span>
+<span class="kw">switch</span> x {
+<span class="kw">case</span> <span class="num">1</span>:
+    fmt.<span class="fn">Println</span>(<span class="str">"One"</span>)
+    <span class="kw">fallthrough</span>    <span class="cmt">// passes control to case 2</span>
+<span class="kw">case</span> <span class="num">2</span>:
+    fmt.<span class="fn">Println</span>(<span class="str">"Two"</span>) <span class="cmt">// ALSO runs</span>
+<span class="kw">case</span> <span class="num">3</span>:
+    fmt.<span class="fn">Println</span>(<span class="str">"Three"</span>) <span class="cmt">// does NOT run</span>
+}
+<span class="cmt">// Output:  One  Two</span>`,
+      interview: {
+        q: 'How does Go switch differ from C or Java? Why is that safer?',
+        a: 'In C/Java, execution falls through to the next case automatically unless you add break. This causes infamous bugs where a developer forgets a break and unintended cases run. Go reverses this — each case breaks automatically, and you must write fallthrough explicitly if you want pass-through. This eliminates an entire class of accidental fall-through bugs.'
+      }
+    },
+    {
+      title: 'Loops — for is the only loop',
+      badge: { text: 'Loops', cls: 'badge-red' },
+      explain: `Go has exactly ONE loop keyword: for. It covers the C-style for loop, the while loop, the infinite loop, and the range-based for-each loop. This simplicity is intentional — fewer constructs, less mental overhead.`,
+      code: `<span class="cmt">// 1. Classic C-style for</span>
+<span class="kw">for</span> i := <span class="num">0</span>; i < <span class="num">5</span>; i++ {
+    fmt.<span class="fn">Println</span>(i) <span class="cmt">// 0 1 2 3 4</span>
+}
+
+<span class="cmt">// 2. While-style (condition only)</span>
+count := <span class="num">0</span>
+<span class="kw">for</span> count < <span class="num">3</span> {
+    fmt.<span class="fn">Println</span>(count)
+    count++
+}
+
+<span class="cmt">// 3. Infinite loop (like while(true))</span>
+<span class="kw">for</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"running"</span>)
+    <span class="kw">break</span> <span class="cmt">// exit</span>
+}
+
+<span class="cmt">// 4. range over slice — (index, value)</span>
+fruits := []<span class="typ">string</span>{<span class="str">"apple"</span>, <span class="str">"mango"</span>, <span class="str">"peach"</span>}
+<span class="kw">for</span> idx, val := <span class="kw">range</span> fruits {
+    fmt.<span class="fn">Printf</span>(<span class="str">"%d: %s\n"</span>, idx, val)
+}
+
+<span class="cmt">// 5. range over map — (key, value) random order!</span>
+m := <span class="kw">map</span>[<span class="typ">string</span>]<span class="typ">int</span>{<span class="str">"a"</span>: <span class="num">1</span>, <span class="str">"b"</span>: <span class="num">2</span>}
+<span class="kw">for</span> k, v := <span class="kw">range</span> m {
+    fmt.<span class="fn">Println</span>(k, v)
+}
+
+<span class="cmt">// 6. range over string — Unicode-safe!</span>
+s := <span class="str">"Go 🚀"</span>
+<span class="kw">for</span> idx, ch := <span class="kw">range</span> s {
+    fmt.<span class="fn">Printf</span>(<span class="str">"idx=%d char=%c\n"</span>, idx, ch)
+}
+<span class="cmt">// ch is a rune — correctly handles multi-byte chars</span>`,
+      warn: { icon: '⚠️', text: 's[i] on a string gives a byte (uint8), not a character. string(s[i]) converts it. But use range for safe Unicode iteration — it gives rune values and handles multi-byte chars like emoji perfectly.' },
+      interview: {
+        q: 'Why does Go have only one loop keyword? And why is range-over-string better than byte indexing?',
+        a: 'One loop keyword eliminates the confusion of choosing between for, while, do-while, foreach. The same for handles all patterns — just omit parts you don\'t need. Range-over-string iterates by Unicode code point (rune), not by byte. Byte indexing breaks on multi-byte characters (emoji, Arabic, Chinese). Range gives you the correct character and its byte offset every time.'
+      }
+    }
+  ]
+},
+
+// ──────────────────────────────────────────────
+//  SECTION 3 — COLLECTIONS
+// ──────────────────────────────────────────────
+{
+  id: 'collections', label: '03 · Collections',
+  title: 'Arrays, Slices & Maps',
+  eyebrow: 'Data Structures',
+  cards: [
+    {
+      title: 'Arrays — fixed-size, value type',
+      badge: { text: 'Array', cls: 'badge-blue' },
+      explain: `An array in Go has a fixed size that is baked into its type. [3]int and [4]int are completely different types. Arrays are value types — assigning or passing to a function copies the entire array.`,
+      code: `<span class="cmt">// Declare with zero values</span>
+<span class="kw">var</span> scores [<span class="num">3</span>]<span class="typ">int</span>            <span class="cmt">// [0 0 0]</span>
+
+<span class="cmt">// Declare with initial values</span>
+grades := [<span class="num">4</span>]<span class="typ">int</span>{<span class="num">90</span>, <span class="num">85</span>, <span class="num">78</span>, <span class="num">92</span>}
+
+<span class="cmt">// Let compiler count size with ...</span>
+names := [...]<span class="typ">string</span>{<span class="str">"Ali"</span>, <span class="str">"Sara"</span>, <span class="str">"Zara"</span>}
+<span class="cmt">// names is type [3]string</span>
+
+<span class="cmt">// Access and modify</span>
+grades[<span class="num">0</span>] = <span class="num">95</span>
+fmt.<span class="fn">Println</span>(grades[<span class="num">0</span>], len(grades)) <span class="cmt">// 95 4</span>
+
+<span class="cmt">// Arrays are COPIED when passed to functions</span>
+<span class="kw">func</span> <span class="fn">tryModify</span>(arr [<span class="num">4</span>]<span class="typ">int</span>) {
+    arr[<span class="num">0</span>] = <span class="num">999</span>  <span class="cmt">// modifies the local COPY only</span>
+}
+<span class="fn">tryModify</span>(grades)
+fmt.<span class="fn">Println</span>(grades[<span class="num">0</span>]) <span class="cmt">// still 95 — original unchanged</span>`,
+      warn: { icon: '⚠️', text: 'Passing a large array to a function copies every element. For large datasets use slices (they pass by reference). Arrays are used mainly when you specifically want value semantics and a compile-time known size.' },
+      interview: {
+        q: 'What is the key limitation of arrays in Go vs slices?',
+        a: 'The size is part of the type. [3]int and [4]int are incompatible types. You cannot resize an array after declaration. You cannot write a function that accepts "any-size int array" — only slices can do that. In practice, slices are used for almost everything dynamic; arrays appear mainly in low-level or performance-critical code.'
+      }
+    },
+    {
+      title: 'Slices — dynamic views over arrays',
+      badge: { text: 'Slice', cls: 'badge-green' },
+      explain: `A slice is Go's most used collection. Internally it is a struct with 3 fields: a pointer to an underlying array, a length (how many elements are visible), and a capacity (how many exist from the pointer to the end of the array). Slices are reference types — multiple slices can share the same array.`,
+      code: `<span class="cmt">// Slice from array using [low:high] (high is exclusive)</span>
+arr := [<span class="num">5</span>]<span class="typ">int</span>{<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>}
+s1 := arr[<span class="num">1</span>:<span class="num">4</span>]        <span class="cmt">// [20 30 40]  len=3  cap=4</span>
+s2 := arr[:<span class="num">3</span>]         <span class="cmt">// [10 20 30]  len=3  cap=5</span>
+s3 := arr[<span class="num">2</span>:]         <span class="cmt">// [30 40 50]  len=3  cap=3</span>
+
+<span class="cmt">// Slice literal — [] with no number = SLICE not array</span>
+nums := []<span class="typ">int</span>{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>}
+
+<span class="cmt">// make — pre-allocate capacity (performance optimization)</span>
+buf := <span class="fn">make</span>([]<span class="typ">byte</span>, <span class="num">0</span>, <span class="num">100</span>)  <span class="cmt">// len=0, cap=100</span>
+
+<span class="cmt">// append — ALWAYS reassign! May return a new slice.</span>
+nums = <span class="fn">append</span>(nums, <span class="num">4</span>, <span class="num">5</span>)  <span class="cmt">// [1 2 3 4 5]</span>
+nums = <span class="fn">append</span>(nums, []<span class="typ">int</span>{<span class="num">6</span>, <span class="num">7</span>}...) <span class="cmt">// spread another slice</span>
+
+<span class="cmt">// Slices SHARE underlying array — mutation is shared!</span>
+original := [<span class="num">3</span>]<span class="typ">int</span>{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>}
+view := original[:]
+view[<span class="num">0</span>] = <span class="num">99</span>
+fmt.<span class="fn">Println</span>(original) <span class="cmt">// [99 2 3] ← original changed!</span>
+
+<span class="cmt">// copy — create an independent copy (no sharing)</span>
+dst := <span class="fn">make</span>([]<span class="typ">int</span>, len(nums))
+<span class="fn">copy</span>(dst, nums)
+dst[<span class="num">0</span>] = <span class="num">999</span>
+fmt.<span class="fn">Println</span>(nums[<span class="num">0</span>]) <span class="cmt">// unchanged — truly independent</span>`,
+      warn: { icon: '⚠️', text: 'When append exceeds capacity, Go allocates a NEW underlying array (usually double the size), copies everything, and returns a new slice header. If you have two variables pointing to the old slice, only the one you reassigned gets the new data. Never assume two slices stay in sync after append.' },
+      interview: {
+        q: 'Explain the internal structure of a slice and what happens when append exceeds capacity.',
+        a: 'A slice header contains: a pointer to the start of the underlying array, a length, and a capacity. When you append beyond capacity, Go allocates a new array (typically 2x larger), copies all elements into it, and returns a new slice pointing to the new array. The old slice still exists pointing to the old array — this is why you must always do s = append(s, val), not just append(s, val).'
+      }
+    },
+    {
+      title: 'Maps — key-value hash tables',
+      badge: { text: 'Map', cls: 'badge-purple' },
+      explain: `A map is Go's built-in hash table. Keys must be comparable types (cannot be slices, maps, or functions). Maps are reference types — passing to a function lets the function mutate the original. Map iteration order is always random.`,
+      code: `<span class="cmt">// Map literal</span>
+scores := <span class="kw">map</span>[<span class="typ">string</span>]<span class="typ">int</span>{
+    <span class="str">"Ali"</span>:  <span class="num">95</span>,
+    <span class="str">"Sara"</span>: <span class="num">88</span>,
+    <span class="str">"Zara"</span>: <span class="num">91</span>,
+}
+
+<span class="cmt">// Insert / update</span>
+scores[<span class="str">"Ahmed"</span>] = <span class="num">79</span>
+
+<span class="cmt">// Read — returns zero value if key absent</span>
+fmt.<span class="fn">Println</span>(scores[<span class="str">"Ali"</span>])     <span class="cmt">// 95</span>
+fmt.<span class="fn">Println</span>(scores[<span class="str">"Ghost"</span>])   <span class="cmt">// 0  (zero value, no error!)</span>
+
+<span class="cmt">// SAFE read — two-value form to check existence</span>
+val, ok := scores[<span class="str">"Ghost"</span>]
+<span class="kw">if</span> !ok {
+    fmt.<span class="fn">Println</span>(<span class="str">"key does not exist"</span>)
+} <span class="kw">else</span> {
+    fmt.<span class="fn">Println</span>(val)
+}
+
+<span class="cmt">// Delete a key</span>
+<span class="fn">delete</span>(scores, <span class="str">"Zara"</span>)
+
+<span class="cmt">// Iterate — ORDER IS RANDOM every run</span>
+<span class="kw">for</span> name, score := <span class="kw">range</span> scores {
+    fmt.<span class="fn">Printf</span>(<span class="str">"%s: %d\n"</span>, name, score)
+}
+
+<span class="cmt">// Map of slices (common pattern)</span>
+groups := <span class="kw">map</span>[<span class="typ">string</span>][]<span class="typ">int</span>{
+    <span class="str">"even"</span>: {<span class="num">2</span>, <span class="num">4</span>, <span class="num">6</span>},
+    <span class="str">"odd"</span>:  {<span class="num">1</span>, <span class="num">3</span>, <span class="num">5</span>},
+}
+groups[<span class="str">"prime"</span>] = <span class="fn">append</span>(groups[<span class="str">"prime"</span>], <span class="num">2</span>, <span class="num">3</span>, <span class="num">5</span>)`,
+      warn: { icon: '⚠️', text: 'Reading a missing key returns 0 (or "", false, nil) — NOT an error. This hides bugs. Always use the two-value form val, ok := m[key] when absence matters.' },
+      interview: {
+        q: 'Why is map iteration order random in Go, and how do you sort map output?',
+        a: 'Go deliberately randomises map iteration order to prevent programmers from accidentally relying on it — map internals can reorder buckets at any time. To produce sorted output: collect the keys into a slice, sort it with sort.Strings() or sort.Ints(), then look up values in that order.'
+      }
+    }
+  ]
+},
+
+// ──────────────────────────────────────────────
+//  SECTION 4 — FUNCTIONS
+// ──────────────────────────────────────────────
+{
+  id: 'functions', label: '04 · Functions',
+  title: 'Functions',
+  eyebrow: 'First-Class Functions',
+  cards: [
+    {
+      title: 'Functions — declaration, multiple returns & errors',
+      badge: { text: 'Functions', cls: 'badge-yellow' },
+      explain: `Functions in Go are first-class — they can be assigned to variables, passed as arguments, and returned from other functions. Go's most distinctive feature is multiple return values, used extensively for error handling.`,
+      code: `<span class="cmt">// Basic function — args with shared types condensed</span>
+<span class="kw">func</span> <span class="fn">add</span>(a, b <span class="typ">int</span>) <span class="typ">int</span> {
+    <span class="kw">return</span> a + b
+}
+
+<span class="cmt">// Multiple return values</span>
+<span class="kw">func</span> <span class="fn">divide</span>(a, b <span class="typ">float64</span>) (<span class="typ">float64</span>, <span class="typ">error</span>) {
+    <span class="kw">if</span> b == <span class="num">0</span> {
+        <span class="kw">return</span> <span class="num">0</span>, fmt.<span class="fn">Errorf</span>(<span class="str">"cannot divide by zero"</span>)
+    }
+    <span class="kw">return</span> a / b, <span class="kw">nil</span>
+}
+
+<span class="cmt">// Caller handles both values explicitly</span>
+result, err := <span class="fn">divide</span>(<span class="num">10</span>, <span class="num">0</span>)
+<span class="kw">if</span> err != <span class="kw">nil</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"Error:"</span>, err)  <span class="cmt">// cannot divide by zero</span>
+    <span class="kw">return</span>
+}
+fmt.<span class="fn">Println</span>(result)
+
+<span class="cmt">// Function as a value</span>
+double := <span class="kw">func</span>(n <span class="typ">int</span>) <span class="typ">int</span> { <span class="kw">return</span> n * <span class="num">2</span> }
+fmt.<span class="fn">Println</span>(<span class="fn">double</span>(<span class="num">5</span>)) <span class="cmt">// 10</span>
+
+<span class="cmt">// Higher-order function — accepts a function arg</span>
+<span class="kw">func</span> <span class="fn">apply</span>(nums []<span class="typ">int</span>, fn <span class="kw">func</span>(<span class="typ">int</span>) <span class="typ">int</span>) []<span class="typ">int</span> {
+    result := <span class="fn">make</span>([]<span class="typ">int</span>, len(nums))
+    <span class="kw">for</span> i, n := <span class="kw">range</span> nums {
+        result[i] = <span class="fn">fn</span>(n)
+    }
+    <span class="kw">return</span> result
+}
+
+doubled := <span class="fn">apply</span>([]<span class="typ">int</span>{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>}, double)
+fmt.<span class="fn">Println</span>(doubled) <span class="cmt">// [2 4 6]</span>
+
+<span class="cmt">// Variadic — accept any number of args</span>
+<span class="kw">func</span> <span class="fn">sum</span>(nums ...<span class="typ">int</span>) <span class="typ">int</span> {
+    total := <span class="num">0</span>
+    <span class="kw">for</span> _, n := <span class="kw">range</span> nums { total += n }
+    <span class="kw">return</span> total
+}
+fmt.<span class="fn">Println</span>(<span class="fn">sum</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>)) <span class="cmt">// 10</span>`,
+      tip: { icon: '💡', text: 'The _ (blank identifier) discards a return value: result, _ = divide(10, 2). Only use it when you are certain the discarded value does not matter. Never discard errors in production code.' },
+      interview: {
+        q: 'Why does Go use multiple return values for errors instead of exceptions?',
+        a: 'Exceptions create invisible control flow — any function call can throw and unwind the stack, making code hard to reason about. Multiple return values make error handling explicit. The caller must acknowledge the error (or explicitly ignore it with _). Every failure path is visible in the code. This produces more reliable, more reviewable, and more maintainable programs.'
+      }
+    }
+  ]
+},
+
+// ──────────────────────────────────────────────
+//  SECTION 5 — STRUCTS & INTERFACES
+// ──────────────────────────────────────────────
+{
+  id: 'structs', label: '05 · Structs & Interfaces',
+  title: 'Structs & Interfaces',
+  eyebrow: 'OOP in Go',
+  cards: [
+    {
+      title: 'Structs — custom composite types',
+      badge: { text: 'Struct', cls: 'badge-purple' },
+      explain: `A struct is a named collection of fields — Go's equivalent of a class. Go uses composition over inheritance. Methods are attached to structs externally using a receiver parameter. Uppercase field names are exported (public); lowercase are unexported (package-private).`,
+      code: `<span class="cmt">// Define a struct</span>
+<span class="kw">type</span> <span class="typ">Person</span> <span class="kw">struct</span> {
+    Name   <span class="typ">string</span>   <span class="cmt">// Exported — visible outside package</span>
+    Age    <span class="typ">int</span>
+    Email  <span class="typ">string</span>
+    score  <span class="typ">int</span>      <span class="cmt">// unexported — hidden outside package</span>
+}
+
+<span class="cmt">// Initialize — positional (order matters, fragile)</span>
+p1 := <span class="typ">Person</span>{<span class="str">"Ali"</span>, <span class="num">25</span>, <span class="str">"ali@example.com"</span>, <span class="num">90</span>}
+
+<span class="cmt">// Initialize — named fields (preferred)</span>
+p2 := <span class="typ">Person</span>{
+    Name:  <span class="str">"Sara"</span>,
+    Age:   <span class="num">28</span>,
+    Email: <span class="str">"sara@example.com"</span>,
+} <span class="cmt">// score defaults to 0</span>
+
+fmt.<span class="fn">Println</span>(p2.Name, p2.Age) <span class="cmt">// Sara 28</span>
+
+<span class="cmt">// Method with VALUE receiver — works on a COPY</span>
+<span class="kw">func</span> (p <span class="typ">Person</span>) <span class="fn">Greet</span>() <span class="typ">string</span> {
+    <span class="kw">return</span> <span class="str">"Hi, I'm "</span> + p.Name
+}
+
+<span class="cmt">// Method with POINTER receiver — modifies original</span>
+<span class="kw">func</span> (p *<span class="typ">Person</span>) <span class="fn">Birthday</span>() {
+    p.Age++  <span class="cmt">// changes the ACTUAL Person, not a copy</span>
+}
+
+p2.<span class="fn">Birthday</span>()
+fmt.<span class="fn">Println</span>(p2.Age) <span class="cmt">// 29</span>
+
+<span class="cmt">// Struct embedding — composition over inheritance</span>
+<span class="kw">type</span> <span class="typ">Employee</span> <span class="kw">struct</span> {
+    <span class="typ">Person</span>       <span class="cmt">// embedded — inherits fields + methods</span>
+    Company <span class="typ">string</span>
+    Salary  <span class="typ">float64</span>
+}
+
+emp := <span class="typ">Employee</span>{
+    Person:  <span class="typ">Person</span>{Name: <span class="str">"Zara"</span>, Age: <span class="num">30</span>},
+    Company: <span class="str">"Anthropic"</span>,
+}
+fmt.<span class="fn">Println</span>(emp.Name)    <span class="cmt">// Zara (promoted from Person)</span>
+fmt.<span class="fn">Println</span>(emp.<span class="fn">Greet</span>()) <span class="cmt">// Hi, I'm Zara</span>`,
+      interview: {
+        q: 'When do you use a pointer receiver (*T) vs a value receiver (T)?',
+        a: 'Use pointer receiver when: (1) the method must modify the struct, or (2) the struct is large and copying would waste memory. Use value receiver when the method only reads and the struct is small. Rule of thumb: if any method on a type uses a pointer receiver, make all methods pointer receivers for consistency — mixing breaks interface satisfaction and creates confusion.'
+      }
+    },
+    {
+      title: 'Interfaces — implicit contracts',
+      badge: { text: 'Interface', cls: 'badge-purple' },
+      explain: `An interface defines a set of method signatures. Any type that implements all those methods automatically satisfies the interface — no explicit "implements" declaration needed. This is called implicit interface satisfaction and is one of Go's most powerful design features.`,
+      code: `<span class="cmt">// Define an interface</span>
+<span class="kw">type</span> <span class="typ">Shape</span> <span class="kw">interface</span> {
+    <span class="fn">Area</span>()      <span class="typ">float64</span>
+    <span class="fn">Perimeter</span>() <span class="typ">float64</span>
+}
+
+<span class="cmt">// Rectangle — implicitly satisfies Shape</span>
+<span class="kw">type</span> <span class="typ">Rectangle</span> <span class="kw">struct</span> { Width, Height <span class="typ">float64</span> }
+<span class="kw">func</span> (r <span class="typ">Rectangle</span>) <span class="fn">Area</span>() <span class="typ">float64</span>      { <span class="kw">return</span> r.Width * r.Height }
+<span class="kw">func</span> (r <span class="typ">Rectangle</span>) <span class="fn">Perimeter</span>() <span class="typ">float64</span> { <span class="kw">return</span> <span class="num">2</span>*(r.Width+r.Height) }
+
+<span class="cmt">// Circle — also satisfies Shape</span>
+<span class="kw">type</span> <span class="typ">Circle</span> <span class="kw">struct</span> { Radius <span class="typ">float64</span> }
+<span class="kw">func</span> (c <span class="typ">Circle</span>) <span class="fn">Area</span>() <span class="typ">float64</span>      { <span class="kw">return</span> <span class="num">3.14159</span> * c.Radius * c.Radius }
+<span class="kw">func</span> (c <span class="typ">Circle</span>) <span class="fn">Perimeter</span>() <span class="typ">float64</span> { <span class="kw">return</span> <span class="num">2</span> * <span class="num">3.14159</span> * c.Radius }
+
+<span class="cmt">// Function accepts ANY Shape — polymorphism!</span>
+<span class="kw">func</span> <span class="fn">describe</span>(s <span class="typ">Shape</span>) {
+    fmt.<span class="fn">Printf</span>(<span class="str">"Area=%.2f  Perim=%.2f\n"</span>, s.<span class="fn">Area</span>(), s.<span class="fn">Perimeter</span>())
+}
+
+<span class="fn">describe</span>(<span class="typ">Rectangle</span>{<span class="num">5</span>, <span class="num">3</span>}) <span class="cmt">// Area=15.00  Perim=16.00</span>
+<span class="fn">describe</span>(<span class="typ">Circle</span>{<span class="num">4</span>})       <span class="cmt">// Area=50.27  Perim=25.13</span>
+
+<span class="cmt">// Type assertion — extract the concrete type from an interface</span>
+<span class="kw">var</span> s <span class="typ">Shape</span> = <span class="typ">Circle</span>{Radius: <span class="num">3</span>}
+c, ok := s.(<span class="typ">Circle</span>)
+<span class="kw">if</span> ok {
+    fmt.<span class="fn">Println</span>(<span class="str">"Radius:"</span>, c.Radius) <span class="cmt">// Radius: 3</span>
+}
+
+<span class="cmt">// Empty interface — accepts ANY value (use sparingly)</span>
+<span class="kw">func</span> <span class="fn">printAny</span>(v <span class="kw">interface</span>{}) {
+    fmt.<span class="fn">Printf</span>(<span class="str">"%T = %v\n"</span>, v, v)
+}
+<span class="fn">printAny</span>(<span class="num">42</span>)       <span class="cmt">// int = 42</span>
+<span class="fn">printAny</span>(<span class="str">"hello"</span>)  <span class="cmt">// string = hello</span>`,
+      tip: { icon: '💡', text: 'The empty interface interface{} (or any in Go 1.18+) accepts any type. Use it for generic utilities. Prefer concrete types or specific interfaces when possible — type safety is Go\'s superpower.' },
+      interview: {
+        q: 'What is implicit interface satisfaction and why is it powerful for testing?',
+        a: 'Go does not require you to declare that a type implements an interface. If a type has all the required methods, it satisfies the interface automatically. For testing, this means you can define an interface that your code depends on, create a mock struct that implements the same methods, and inject the mock — without modifying the original types at all. This makes decoupled, testable architecture effortless.'
+      }
+    }
+  ]
+},
+
+// ──────────────────────────────────────────────
+//  SECTION 6 — STRINGS & ENCODING
+// ──────────────────────────────────────────────
+{
+  id: 'strings', label: '06 · Strings & Encoding',
+  title: 'Strings & Unicode',
+  eyebrow: 'Text & Encoding',
+  cards: [
+    {
+      title: 'Strings, bytes, runes, ASCII & UTF-8',
+      badge: { text: 'Encoding', cls: 'badge-green' },
+      explain: `A string in Go is an immutable, read-only slice of bytes. ASCII encodes each character in 1 byte (2⁸ = 256 values). UTF-8 encodes characters in 1 to 4 bytes (2³² = 4 billion values). This difference is why naive byte indexing breaks on non-English text.`,
+      code: `s := <span class="str">"Hello 🌍"</span>
+
+<span class="cmt">// len() counts BYTES, not characters</span>
+fmt.<span class="fn">Println</span>(len(s))          <span class="cmt">// 10 bytes (🌍 alone is 4 bytes)</span>
+
+<span class="cmt">// Byte indexing — gives a uint8 value (byte)</span>
+fmt.<span class="fn">Println</span>(s[<span class="num">0</span>])             <span class="cmt">// 72  (ASCII value of 'H')</span>
+fmt.<span class="fn">Println</span>(<span class="fn">string</span>(s[<span class="num">0</span>]))    <span class="cmt">// "H" (convert to string)</span>
+
+<span class="cmt">// ⚠ Dangerous on multi-byte chars:</span>
+fmt.<span class="fn">Println</span>(<span class="fn">string</span>(s[<span class="num">6</span>]))    <span class="cmt">// garbage — 🌍 starts at byte 6</span>
+
+<span class="cmt">// range loop — Unicode-SAFE, iterates by rune</span>
+<span class="kw">for</span> idx, ch := <span class="kw">range</span> s {
+    fmt.<span class="fn">Printf</span>(<span class="str">"byte[%d] → %c\n"</span>, idx, ch)
+}
+<span class="cmt">// byte[0] → H  ...  byte[6] → 🌍  (correct!)</span>
+
+<span class="cmt">// Convert to rune slice for character manipulation</span>
+runes := []<span class="typ">rune</span>(s)
+fmt.<span class="fn">Println</span>(len(runes))      <span class="cmt">// 7 characters (correct!)</span>
+fmt.<span class="fn">Println</span>(<span class="fn">string</span>(runes[<span class="num">6</span>])) <span class="cmt">// 🌍</span>
+
+<span class="cmt">// Efficient string building — use strings.Builder</span>
+<span class="kw">import</span> <span class="str">"strings"</span>
+<span class="kw">var</span> sb strings.<span class="typ">Builder</span>
+<span class="kw">for</span> i := <span class="num">0</span>; i < <span class="num">5</span>; i++ {
+    sb.<span class="fn">WriteString</span>(<span class="str">"Go!"</span>)
+}
+fmt.<span class="fn">Println</span>(sb.<span class="fn">String</span>()) <span class="cmt">// Go!Go!Go!Go!Go!</span>
+
+<span class="cmt">// Common string utilities</span>
+<span class="kw">import</span> <span class="str">"strings"</span>
+strings.<span class="fn">Contains</span>(<span class="str">"Go is great"</span>, <span class="str">"great"</span>) <span class="cmt">// true</span>
+strings.<span class="fn">ToUpper</span>(<span class="str">"hello"</span>)                   <span class="cmt">// "HELLO"</span>
+strings.<span class="fn">Split</span>(<span class="str">"a,b,c"</span>, <span class="str">","</span>)               <span class="cmt">// ["a","b","c"]</span>
+strings.<span class="fn">TrimSpace</span>(<span class="str">"  hi  "</span>)               <span class="cmt">// "hi"</span>`,
+      interview: {
+        q: 'What is the difference between len(s) and len([]rune(s))? When does it matter?',
+        a: 'len(s) counts bytes. len([]rune(s)) counts Unicode characters (code points). For pure ASCII strings they are equal. For any string with emoji, Arabic, Chinese, or other multi-byte characters, len(s) will be larger. This matters any time you need to: truncate text at a character boundary, count visible characters, or iterate by character. Always use range or []rune for Unicode-correct string processing.'
+      }
+    }
+  ]
+}
+
+,
+
+// ──────────────────────────────────────────────
+//  SECTION 7 — ERRORS, PANIC & DEFER
+// ──────────────────────────────────────────────
+{
+  id: 'errors', label: '07 · Errors & Defer',
+  title: 'Errors, Panic & Defer',
+  eyebrow: 'Error Handling',
+  cards: [
+    {
+      title: 'Errors — the explicit error model',
+      badge: { text: 'Error Handling', cls: 'badge-red' },
+      explain: `Go treats errors as values, not exceptions. A function that can fail returns an error as its last return value. If everything went fine, it returns nil. The caller is FORCED to decide what to do — ignore, log, wrap, or propagate. This makes every failure path visible in code review.`,
+      code: `<span class="kw">import</span> (
+    <span class="str">"errors"</span>
+    <span class="str">"fmt"</span>
+)
+
+<span class="cmt">// errors.New — create a simple error value</span>
+<span class="kw">var</span> ErrDivByZero = errors.<span class="fn">New</span>(<span class="str">"division by zero"</span>)
+
+<span class="kw">func</span> <span class="fn">divide</span>(a, b <span class="typ">float64</span>) (<span class="typ">float64</span>, <span class="typ">error</span>) {
+    <span class="kw">if</span> b == <span class="num">0</span> {
+        <span class="kw">return</span> <span class="num">0</span>, ErrDivByZero
+    }
+    <span class="kw">return</span> a / b, <span class="kw">nil</span>
+}
+
+<span class="cmt">// fmt.Errorf — formatted error with context</span>
+<span class="kw">func</span> <span class="fn">safeSqrt</span>(n <span class="typ">float64</span>) (<span class="typ">float64</span>, <span class="typ">error</span>) {
+    <span class="kw">if</span> n < <span class="num">0</span> {
+        <span class="kw">return</span> <span class="num">0</span>, fmt.<span class="fn">Errorf</span>(<span class="str">"safeSqrt: cannot take root of negative number %v"</span>, n)
+    }
+    <span class="kw">return</span> math.<span class="fn">Sqrt</span>(n), <span class="kw">nil</span>
+}
+
+<span class="cmt">// Caller checks and handles explicitly</span>
+result, err := <span class="fn">divide</span>(<span class="num">10</span>, <span class="num">0</span>)
+<span class="kw">if</span> err != <span class="kw">nil</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"Error:"</span>, err)  <span class="cmt">// Error: division by zero</span>
+    <span class="kw">return</span>
+}
+fmt.<span class="fn">Println</span>(result)
+
+<span class="cmt">// errors.Is — check if an error matches a sentinel value (even wrapped)</span>
+_, err = <span class="fn">divide</span>(<span class="num">1</span>, <span class="num">0</span>)
+<span class="kw">if</span> errors.<span class="fn">Is</span>(err, ErrDivByZero) {
+    fmt.<span class="fn">Println</span>(<span class="str">"caught division by zero specifically"</span>)
+}
+
+<span class="cmt">// Wrapping errors — add context without losing the original</span>
+<span class="kw">func</span> <span class="fn">processFile</span>(path <span class="typ">string</span>) <span class="typ">error</span> {
+    _, err := os.<span class="fn">Open</span>(path)
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="kw">return</span> fmt.<span class="fn">Errorf</span>(<span class="str">"processFile %s: %w"</span>, path, err) <span class="cmt">// %w wraps</span>
+    }
+    <span class="kw">return</span> <span class="kw">nil</span>
+}
+<span class="cmt">// errors.Is() and errors.As() can still unwrap and inspect the original</span>`,
+      tip: { icon: '💡', text: 'Sentinel errors (var ErrX = errors.New(...)) are package-level variables that callers can compare with errors.Is(). Use %w in fmt.Errorf to wrap errors and preserve the original for inspection. Never use == to compare errors — always use errors.Is() which handles wrapping.' },
+      interview: {
+        q: 'What is the difference between errors.Is() and a direct == comparison on errors?',
+        a: 'Direct == only matches the exact error value. errors.Is() unwraps the error chain — so if an error was wrapped with fmt.Errorf("context: %w", originalErr), errors.Is(err, originalErr) still returns true. In production code, errors pass through multiple layers of wrapping. Always use errors.Is() to check for specific conditions and errors.As() to extract a specific error type from anywhere in the chain.'
+      }
+    },
+    {
+      title: 'Panic — unrecoverable runtime errors',
+      badge: { text: 'Panic', cls: 'badge-red' },
+      explain: `A panic is Go's mechanism for fatal runtime errors — situations the program genuinely cannot recover from. Unlike errors (which are expected failures), panics represent programmer mistakes or impossible states: nil pointer dereference, index out of bounds, divide by integer zero, type assertion failure. You can also trigger a panic manually.`,
+      code: `<span class="cmt">// ── RUNTIME panics (automatic) ──</span>
+
+<span class="cmt">// 1. Integer divide by zero (compiler cannot catch this — value is runtime)</span>
+a, b := <span class="num">10</span>, <span class="num">0</span>
+<span class="cmt">// _ = a / b  ← PANIC: runtime error: integer divide by zero</span>
+<span class="cmt">// Note: float divide by zero is NOT a panic — returns +Inf</span>
+
+<span class="cmt">// 2. Nil pointer dereference</span>
+<span class="kw">var</span> p *<span class="typ">int</span>
+<span class="cmt">// fmt.Println(*p)  ← PANIC: nil pointer dereference</span>
+
+<span class="cmt">// 3. Slice out of bounds</span>
+s := []<span class="typ">int</span>{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>}
+<span class="cmt">// _ = s[10]  ← PANIC: index out of range [10] with length 3</span>
+
+<span class="cmt">// ── MANUAL panic ──</span>
+<span class="kw">func</span> <span class="fn">mustPositive</span>(n <span class="typ">int</span>) <span class="typ">int</span> {
+    <span class="kw">if</span> n <= <span class="num">0</span> {
+        <span class="kw">panic</span>(fmt.<span class="fn">Sprintf</span>(<span class="str">"mustPositive: got %d, expected > 0"</span>, n))
+    }
+    <span class="kw">return</span> n
+}
+
+<span class="cmt">// ── recover() — catch a panic inside a deferred function ──</span>
+<span class="kw">func</span> <span class="fn">safeDiv</span>(a, b <span class="typ">int</span>) (result <span class="typ">int</span>, err <span class="typ">error</span>) {
+    <span class="kw">defer func</span>() {
+        <span class="kw">if</span> r := <span class="fn">recover</span>(); r != <span class="kw">nil</span> {
+            err = fmt.<span class="fn">Errorf</span>(<span class="str">"recovered from panic: %v"</span>, r)
+        }
+    }()
+    <span class="kw">return</span> a / b, <span class="kw">nil</span>  <span class="cmt">// panics if b==0, caught by defer+recover above</span>
+}
+
+res, err := <span class="fn">safeDiv</span>(<span class="num">10</span>, <span class="num">0</span>)
+fmt.<span class="fn">Println</span>(res, err) <span class="cmt">// 0  recovered from panic: runtime error: integer divide by zero</span>`,
+      warn: { icon: '⚠️', text: 'Do NOT use panic for normal error handling. Panic is for programmer bugs and impossible states. For anything a user or external system can cause (bad input, network failure, file missing), return an error. Rule: if it can happen in production under normal operation, use error. If it should NEVER happen and means the code is wrong, use panic.' },
+      interview: {
+        q: 'When should you use panic vs returning an error? And what does recover() do?',
+        a: 'Use error returns for expected failures — anything that can legitimately happen: bad user input, network timeouts, file not found. Use panic for invariant violations that represent a bug in the code itself: a function that was called with a nil argument when the contract says never pass nil, or an internal state that mathematically cannot occur. recover() is a built-in that catches a panic and converts it back to a normal value — but ONLY when called inside a deferred function. It is mainly used to build robust servers that must not crash on a bad request.'
+      }
+    },
+    {
+      title: 'Defer — guaranteed cleanup, always runs',
+      badge: { text: 'Defer', cls: 'badge-orange' },
+      explain: `defer schedules a function call to run when the surrounding function returns — no matter HOW it returns: normal return, early return, or even a panic. It is Go's primary tool for resource cleanup: closing files, releasing locks, flushing buffers. Multiple defers in one function execute in LIFO (last in, first out) order.`,
+      code: `<span class="kw">import</span> <span class="str">"os"</span>
+
+<span class="cmt">// Classic use: close a file — guaranteed no matter what happens</span>
+<span class="kw">func</span> <span class="fn">readFile</span>(path <span class="typ">string</span>) <span class="typ">error</span> {
+    file, err := os.<span class="fn">Open</span>(path)
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="kw">return</span> err
+    }
+    <span class="kw">defer</span> file.<span class="fn">Close</span>() <span class="cmt">// ← registered here, runs when readFile returns</span>
+
+    <span class="cmt">// ... read from file ...</span>
+    <span class="cmt">// Even if we return early or panic, file.Close() WILL run</span>
+    <span class="kw">return</span> <span class="kw">nil</span>
+}
+
+<span class="cmt">// LIFO order — multiple defers stack up</span>
+<span class="kw">func</span> <span class="fn">lifoDemo</span>() {
+    <span class="kw">defer</span> fmt.<span class="fn">Println</span>(<span class="str">"first defer  → runs LAST"</span>)
+    <span class="kw">defer</span> fmt.<span class="fn">Println</span>(<span class="str">"second defer → runs MIDDLE"</span>)
+    <span class="kw">defer</span> fmt.<span class="fn">Println</span>(<span class="str">"third defer  → runs FIRST"</span>)
+    fmt.<span class="fn">Println</span>(<span class="str">"function body"</span>)
+}
+<span class="cmt">// Output:</span>
+<span class="cmt">// function body</span>
+<span class="cmt">// third defer  → runs FIRST</span>
+<span class="cmt">// second defer → runs MIDDLE</span>
+<span class="cmt">// first defer  → runs LAST</span>
+
+<span class="cmt">// defer with a mutex — release lock no matter what</span>
+<span class="kw">var</span> mu sync.<span class="typ">Mutex</span>
+<span class="kw">func</span> <span class="fn">safeUpdate</span>() {
+    mu.<span class="fn">Lock</span>()
+    <span class="kw">defer</span> mu.<span class="fn">Unlock</span>() <span class="cmt">// guaranteed unlock even on panic</span>
+    <span class="cmt">// ... critical section ...</span>
+}
+
+<span class="cmt">// defer captures arguments AT REGISTRATION TIME</span>
+<span class="kw">func</span> <span class="fn">argDemo</span>() {
+    x := <span class="num">5</span>
+    <span class="kw">defer</span> fmt.<span class="fn">Println</span>(<span class="str">"deferred x ="</span>, x) <span class="cmt">// captures x=5 NOW</span>
+    x = <span class="num">100</span>
+    fmt.<span class="fn">Println</span>(<span class="str">"current x ="</span>, x)
+}
+<span class="cmt">// Output:</span>
+<span class="cmt">// current x = 100</span>
+<span class="cmt">// deferred x = 5   ← captured at defer line, not at return time</span>`,
+      tip: { icon: '💡', text: 'The defer+recover pattern is the correct way to build a panic-safe server handler. Wrap each request handler in a function that defers recover(), so one bad request cannot crash the whole server.' },
+      interview: {
+        q: 'What is LIFO order in defer, and what is the argument-capture gotcha?',
+        a: 'Multiple defers in one function execute in reverse order (last registered = first to run) — like a stack. This mirrors the natural open/close pairing: if you open A then B, you should close B then A. The argument-capture gotcha: defer\'s function arguments are evaluated immediately when the defer statement is registered, not when it executes. So defer fmt.Println(x) where x is later changed will print the original value. To capture the current value at execution time, use a closure: defer func() { fmt.Println(x) }().'
+      }
+    }
+  ]
+},
+
+// ──────────────────────────────────────────────
+//  SECTION 8 — GENERICS
+// ──────────────────────────────────────────────
+{
+  id: 'generics', label: '08 · Generics',
+  title: 'Generics',
+  eyebrow: 'Type Parameters (Go 1.18+)',
+  cards: [
+    {
+      title: 'Generics — write once, work for many types',
+      badge: { text: 'Generics', cls: 'badge-purple' },
+      explain: `Generics (introduced in Go 1.18) let you write a single function or type that works with multiple types, while still keeping full compile-time type safety. Before generics, you had to either duplicate code for each type or lose type safety by using interface{}. The type parameter T is a placeholder filled in at compile time.`,
+      code: `<span class="cmt">// ── WITHOUT generics — code duplication ──</span>
+<span class="kw">func</span> <span class="fn">addInts</span>(x, y <span class="typ">int</span>) <span class="typ">int</span>         { <span class="kw">return</span> x + y }
+<span class="kw">func</span> <span class="fn">addFloats</span>(x, y <span class="typ">float64</span>) <span class="typ">float64</span> { <span class="kw">return</span> x + y }
+
+<span class="cmt">// ── WITH generics — one function, multiple types ──</span>
+<span class="cmt">// T is the type parameter, int|float64 is the type constraint</span>
+<span class="kw">func</span> <span class="fn">add</span>[T <span class="typ">int</span> | <span class="typ">float64</span>](x, y T) T {
+    <span class="kw">return</span> x + y
+}
+
+fmt.<span class="fn">Println</span>(<span class="fn">add</span>(<span class="num">3</span>, <span class="num">4</span>))       <span class="cmt">// 7       — T inferred as int</span>
+fmt.<span class="fn">Println</span>(<span class="fn">add</span>(<span class="num">1.5</span>, <span class="num">2.5</span>))  <span class="cmt">// 4.0     — T inferred as float64</span>
+fmt.<span class="fn">Println</span>(<span class="fn">add</span>[<span class="typ">int</span>](<span class="num">3</span>, <span class="num">4</span>)) <span class="cmt">// 7       — T explicitly set to int</span>
+
+<span class="cmt">// ── BOTH args must be the SAME type ──</span>
+<span class="cmt">// add(3, 2.5)  ← compile error: T cannot be both int and float64</span>
+
+<span class="cmt">// ── Named type constraint (reusable interface) ──</span>
+<span class="kw">type</span> <span class="typ">Number</span> <span class="kw">interface</span> {
+    <span class="typ">int</span> | <span class="typ">int32</span> | <span class="typ">int64</span> | <span class="typ">float32</span> | <span class="typ">float64</span> | <span class="typ">uint</span>
+}
+
+<span class="kw">func</span> <span class="fn">sum</span>[T <span class="typ">Number</span>](nums []T) T {
+    <span class="kw">var</span> total T <span class="cmt">// zero value of T</span>
+    <span class="kw">for</span> _, n := <span class="kw">range</span> nums {
+        total += n
+    }
+    <span class="kw">return</span> total
+}
+
+fmt.<span class="fn">Println</span>(<span class="fn">sum</span>([]<span class="typ">int</span>{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>}))         <span class="cmt">// 10</span>
+fmt.<span class="fn">Println</span>(<span class="fn">sum</span>([]<span class="typ">float64</span>{<span class="num">1.1</span>, <span class="num">2.2</span>, <span class="num">3.3</span>}))  <span class="cmt">// 6.6</span>
+
+<span class="cmt">// ── Generic data structure — a typed Stack ──</span>
+<span class="kw">type</span> <span class="typ">Stack</span>[T <span class="kw">any</span>] <span class="kw">struct</span> {
+    items []T
+}
+
+<span class="kw">func</span> (s *<span class="typ">Stack</span>[T]) <span class="fn">Push</span>(item T)    { s.items = <span class="fn">append</span>(s.items, item) }
+<span class="kw">func</span> (s *<span class="typ">Stack</span>[T]) <span class="fn">Pop</span>() (T, <span class="typ">bool</span>) {
+    <span class="kw">var</span> zero T
+    <span class="kw">if</span> len(s.items) == <span class="num">0</span> { <span class="kw">return</span> zero, <span class="kw">false</span> }
+    top := s.items[len(s.items)-<span class="num">1</span>]
+    s.items = s.items[:len(s.items)-<span class="num">1</span>]
+    <span class="kw">return</span> top, <span class="kw">true</span>
+}
+
+<span class="kw">var</span> intStack <span class="typ">Stack</span>[<span class="typ">int</span>]
+intStack.<span class="fn">Push</span>(<span class="num">1</span>); intStack.<span class="fn">Push</span>(<span class="num">2</span>); intStack.<span class="fn">Push</span>(<span class="num">3</span>)
+v, _ := intStack.<span class="fn">Pop</span>()
+fmt.<span class="fn">Println</span>(v) <span class="cmt">// 3</span>`,
+      tip: { icon: '💡', text: 'The any keyword (Go 1.18+) is an alias for interface{} and means "no constraint, accept all types." The comparable built-in constraint means "types that can be compared with == and !=" — this includes bool, int, float, string, pointer, struct with comparable fields, and arrays. Maps and slices are NOT comparable.' },
+      interview: {
+        q: 'Why were generics added to Go in 1.18 and why must both arguments to a generic function be the same type?',
+        a: 'Before generics, writing a function that worked on []int and []float64 required either copy-pasting or using interface{} — which loses type safety and requires type assertions everywhere. Generics solve this without sacrificing compile-time safety. Both arguments must be the same type because T is a single type parameter — it gets resolved to one concrete type per call. If you write add(3, 2.5), the compiler cannot pick both int and float64 for T simultaneously. This is intentional: it prevents silent implicit type coercion bugs.'
+      }
+    },
+    {
+      title: 'comparable — the built-in constraint',
+      badge: { text: 'Constraints', cls: 'badge-blue' },
+      explain: `comparable is a special built-in interface constraint in Go generics. It is automatically satisfied by any type that supports == and != operators. It exists because not all types are comparable — slices, maps, and functions cannot be compared with ==. The comparable constraint is essential for writing generic functions that need to check equality, such as building a generic set or a generic map key.`,
+      code: `<span class="cmt">// comparable constraint — only types that support == and !=</span>
+<span class="kw">func</span> <span class="fn">contains</span>[T <span class="typ">comparable</span>](slice []T, target T) <span class="typ">bool</span> {
+    <span class="kw">for</span> _, v := <span class="kw">range</span> slice {
+        <span class="kw">if</span> v == target { <span class="cmt">// only valid because T is comparable</span>
+            <span class="kw">return</span> <span class="kw">true</span>
+        }
+    }
+    <span class="kw">return</span> <span class="kw">false</span>
+}
+
+fmt.<span class="fn">Println</span>(<span class="fn">contains</span>([]<span class="typ">int</span>{<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>}, <span class="num">2</span>))          <span class="cmt">// true</span>
+fmt.<span class="fn">Println</span>(<span class="fn">contains</span>([]<span class="typ">string</span>{<span class="str">"a"</span>,<span class="str">"b"</span>}, <span class="str">"c"</span>))    <span class="cmt">// false</span>
+fmt.<span class="fn">Println</span>(<span class="fn">contains</span>([]<span class="typ">bool</span>{<span class="kw">true</span>}, <span class="kw">false</span>))       <span class="cmt">// false</span>
+
+<span class="cmt">// ── Generic Set using comparable as map key ──</span>
+<span class="kw">type</span> <span class="typ">Set</span>[T <span class="typ">comparable</span>] <span class="kw">struct</span> {
+    m <span class="kw">map</span>[T]<span class="kw">struct</span>{}
+}
+
+<span class="kw">func</span> <span class="fn">NewSet</span>[T <span class="typ">comparable</span>]() *<span class="typ">Set</span>[T] {
+    <span class="kw">return</span> &<span class="typ">Set</span>[T]{m: <span class="fn">make</span>(<span class="kw">map</span>[T]<span class="kw">struct</span>{})}
+}
+
+<span class="kw">func</span> (s *<span class="typ">Set</span>[T]) <span class="fn">Add</span>(v T)      { s.m[v] = <span class="kw">struct</span>{}{} }
+<span class="kw">func</span> (s *<span class="typ">Set</span>[T]) <span class="fn">Has</span>(v T) <span class="typ">bool</span> { _, ok := s.m[v]; <span class="kw">return</span> ok }
+
+intSet := <span class="fn">NewSet</span>[<span class="typ">int</span>]()
+intSet.<span class="fn">Add</span>(<span class="num">1</span>); intSet.<span class="fn">Add</span>(<span class="num">2</span>)
+fmt.<span class="fn">Println</span>(intSet.<span class="fn">Has</span>(<span class="num">1</span>)) <span class="cmt">// true</span>
+fmt.<span class="fn">Println</span>(intSet.<span class="fn">Has</span>(<span class="num">9</span>)) <span class="cmt">// false</span>
+
+<span class="cmt">// ── Types satisfying comparable ──</span>
+<span class="cmt">// ✅ bool, int, float32/64, string, pointer, channel</span>
+<span class="cmt">// ✅ array of comparable types: [3]int is comparable</span>
+<span class="cmt">// ✅ struct whose ALL fields are comparable</span>
+<span class="cmt">// ❌ slice  — cannot use == on slices</span>
+<span class="cmt">// ❌ map    — cannot use == on maps</span>
+<span class="cmt">// ❌ func   — cannot use == on functions</span>`,
+      interview: {
+        q: 'Why does Go need a comparable constraint? Why can\'t you just use == on any generic type?',
+        a: 'Not every type in Go supports ==. Slices, maps, and functions cannot be compared with == — Go does not define equality for them (slices would require deep element comparison; maps are mutable reference types). If T had no constraint, writing v == target in a generic function would be a compile error when T is a slice. The comparable constraint tells the compiler "only allow T to be instantiated with types that do support ==", giving you a compile-time guarantee that the comparison is valid and correct.'
+      }
+    }
+  ]
+},
+
+// ──────────────────────────────────────────────
+//  SECTION 9 — POINTERS
+// ──────────────────────────────────────────────
+{
+  id: 'pointers', label: '09 · Pointers',
+  title: 'Pointers & Memory',
+  eyebrow: 'Memory & References',
+  cards: [
+    {
+      title: 'Pointers — addresses, & and *',
+      badge: { text: 'Pointers', cls: 'badge-orange' },
+      explain: `Every variable in Go lives at a specific memory address. A pointer is a variable that stores a memory address instead of a data value. Two operators govern pointers: & (address-of) takes the address of a variable, and * (dereference) reads or writes the value at that address. Pointers give you the power to mutate values across function boundaries without returning them.`,
+      code: `<span class="cmt">// ── The basics: address-of & and dereference * ──</span>
+x := <span class="num">42</span>
+p := &x               <span class="cmt">// p is *int — holds the memory address of x</span>
+
+fmt.<span class="fn">Println</span>(x)        <span class="cmt">// 42        — the value</span>
+fmt.<span class="fn">Println</span>(&x)       <span class="cmt">// 0xc000012080 — the address (varies)</span>
+fmt.<span class="fn">Println</span>(p)        <span class="cmt">// 0xc000012080 — same address stored in p</span>
+fmt.<span class="fn">Println</span>(*p)       <span class="cmt">// 42        — dereference: value AT that address</span>
+
+<span class="cmt">// Modify x through the pointer</span>
+*p = <span class="num">99</span>
+fmt.<span class="fn">Println</span>(x)        <span class="cmt">// 99  ← x changed via pointer!</span>
+
+<span class="cmt">// ── Pointer as function parameter — mutate caller's variable ──</span>
+<span class="kw">func</span> <span class="fn">doubleValue</span>(n *<span class="typ">int</span>) {    <span class="cmt">// receives a pointer to int</span>
+    *n = *n * <span class="num">2</span>              <span class="cmt">// dereference and modify</span>
+}
+
+score := <span class="num">10</span>
+<span class="fn">doubleValue</span>(&score)         <span class="cmt">// pass address of score</span>
+fmt.<span class="fn">Println</span>(score)           <span class="cmt">// 20 — modified!</span>
+
+<span class="cmt">// Compare: WITHOUT pointer — caller's value is unchanged</span>
+<span class="kw">func</span> <span class="fn">tryDouble</span>(n <span class="typ">int</span>) {
+    n = n * <span class="num">2</span>  <span class="cmt">// modifies the copy — caller sees nothing</span>
+}
+<span class="fn">tryDouble</span>(score)
+fmt.<span class="fn">Println</span>(score)  <span class="cmt">// still 20 — unchanged</span>
+
+<span class="cmt">// ── new() — allocate a zeroed pointer on the heap ──</span>
+q := <span class="fn">new</span>(<span class="typ">int</span>)          <span class="cmt">// *int pointing to a zero-valued int</span>
+*q = <span class="num">55</span>
+fmt.<span class="fn">Println</span>(*q)        <span class="cmt">// 55</span>
+
+<span class="cmt">// ── nil pointer — zero value for pointers ──</span>
+<span class="kw">var</span> np *<span class="typ">int</span>              <span class="cmt">// np == nil</span>
+fmt.<span class="fn">Println</span>(np)          <span class="cmt">// &lt;nil&gt;</span>
+<span class="cmt">// *np = 5  ← PANIC: nil pointer dereference! Always check before dereferencing</span>
+<span class="kw">if</span> np != <span class="kw">nil</span> {
+    fmt.<span class="fn">Println</span>(*np)
+}`,
+      tip: { icon: '💡', text: 'Go\'s garbage collector manages memory automatically — you don\'t need to free pointers manually like in C. If a pointer escapes a function (returned or stored in a struct), Go moves the value to the heap. If it stays local, it stays on the stack. This is called escape analysis and happens automatically at compile time.' },
+      interview: {
+        q: 'When do you need a pointer in Go? What is the difference between passing by value and passing by pointer?',
+        a: 'Pass by value: Go copies the entire value into the function. The function works on its own copy. The caller\'s original is never touched. Good for small types (int, bool, small structs). Pass by pointer: the function receives the address of the caller\'s variable. Dereferencing and writing through the pointer modifies the caller\'s original. Required when: (1) you need the function to modify the caller\'s variable, (2) the struct is large and copying is expensive, (3) the zero value vs nil needs to be distinguishable (e.g., *bool can be nil, meaning "not set", while bool zero value is false).'
+      }
+    },
+    {
+      title: 'Pointers with structs — the real-world pattern',
+      badge: { text: 'Struct Pointers', cls: 'badge-orange' },
+      explain: `In Go, struct pointers are everywhere. Passing a large struct by value copies all its fields. Passing a pointer is just 8 bytes (the address). Pointer receivers on methods are also how you mutate struct state. Go automatically dereferences struct pointers for you — you can write p.Name instead of (*p).Name.`,
+      code: `<span class="kw">type</span> <span class="typ">User</span> <span class="kw">struct</span> {
+    Name  <span class="typ">string</span>
+    Age   <span class="typ">int</span>
+    Email <span class="typ">string</span>
+}
+
+<span class="cmt">// ── Pass by pointer — function can modify User ──</span>
+<span class="kw">func</span> <span class="fn">birthday</span>(u *<span class="typ">User</span>) {
+    u.Age++  <span class="cmt">// Go auto-dereferences: same as (*u).Age++</span>
+}
+
+alice := <span class="typ">User</span>{Name: <span class="str">"Alice"</span>, Age: <span class="num">29</span>}
+<span class="fn">birthday</span>(&alice)
+fmt.<span class="fn">Println</span>(alice.Age) <span class="cmt">// 30</span>
+
+<span class="cmt">// ── Pointer receiver on method (the standard pattern) ──</span>
+<span class="kw">func</span> (u *<span class="typ">User</span>) <span class="fn">Promote</span>(newEmail <span class="typ">string</span>) {
+    u.Email = newEmail
+    fmt.<span class="fn">Printf</span>(<span class="str">"%s promoted\n"</span>, u.Name)
+}
+
+alice.<span class="fn">Promote</span>(<span class="str">"alice@company.com"</span>) <span class="cmt">// Go auto-takes address: (&alice).Promote(...)</span>
+fmt.<span class="fn">Println</span>(alice.Email) <span class="cmt">// alice@company.com</span>
+
+<span class="cmt">// ── Pointer to struct from a function ──</span>
+<span class="kw">func</span> <span class="fn">newUser</span>(name <span class="typ">string</span>, age <span class="typ">int</span>) *<span class="typ">User</span> {
+    <span class="kw">return</span> &<span class="typ">User</span>{Name: name, Age: age}  <span class="cmt">// address of struct literal</span>
+}
+
+bob := <span class="fn">newUser</span>(<span class="str">"Bob"</span>, <span class="num">25</span>)
+fmt.<span class="fn">Println</span>(bob.Name) <span class="cmt">// Bob  (Go auto-dereferences)</span>
+
+<span class="cmt">// ── Slices already contain a pointer internally ──</span>
+<span class="cmt">// You don't need *[]int — passing []int already shares the array</span>
+<span class="kw">func</span> <span class="fn">fill</span>(s []<span class="typ">int</span>) {
+    <span class="kw">for</span> i := <span class="kw">range</span> s { s[i] = <span class="num">99</span> }
+}
+data := []<span class="typ">int</span>{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>}
+<span class="fn">fill</span>(data)
+fmt.<span class="fn">Println</span>(data) <span class="cmt">// [99 99 99] — slice shares underlying array</span>`,
+      warn: { icon: '⚠️', text: 'Slices and maps already behave like pointers — they carry an internal reference to their underlying data. You do NOT need *[]int or *map[K]V to share them across functions. The pointer wrapper is only needed when the function needs to replace the slice itself (e.g., change its header — pointer and length and capacity) not just its elements.' },
+      interview: {
+        q: 'Go auto-dereferences struct pointers — what does that mean and why is it convenient?',
+        a: 'When you have a pointer p of type *User, Go allows you to write p.Name instead of the technically correct (*p).Name. The compiler automatically inserts the dereference for you. This is purely syntactic sugar — under the hood it is still dereferencing the pointer. It matters because almost all structs in real code are accessed through pointers (from constructors, from slices of pointers, etc.), and writing (*p).Field everywhere would be unbearably verbose. The same auto-dereferencing applies to calling methods: alice.Promote() on a non-pointer value automatically becomes (&alice).Promote() when Promote has a pointer receiver.'
+      }
+    }
+  ]
+}
+
+];
+
+// ─── RENDER ───────────────────────────────────
+function renderSyntax(raw) {
+  return raw;
+}
+
+function buildCard(card) {
+  let html = `<div class="topic-card">`;
+  html += `<div class="card-header">`;
+  html += `<div class="card-title">${card.title}</div>`;
+  html += `<span class="badge ${card.badge.cls}">${card.badge.text}</span>`;
+  html += `</div><div class="card-body">`;
+  html += `<p class="explain">${card.explain}</p>`;
+
+  if (card.table) {
+    html += `<table class="type-table"><thead><tr>`;
+    card.table.headers.forEach(h => { html += `<th>${h}</th>`; });
+    html += `</tr></thead><tbody>`;
+    card.table.rows.forEach(row => {
+      html += `<tr>
+        <td class="type-name">${row[0]}</td>
+        <td class="type-size">${row[1]}</td>
+        <td class="type-desc">${row[2]}</td>
+        <td class="type-eg"><code>${row[3]}</code></td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  html += `<div class="code-wrap">
+    <div class="code-toolbar">
+      <div class="code-dots"><span class="cd1"></span><span class="cd2"></span><span class="cd3"></span></div>
+      <span class="code-lang">Go</span>
+    </div>
+    <div class="code-block">${card.code}</div>
+  </div>`;
+
+  if (card.tip) {
+    html += `<div class="callout callout-tip">
+      <div class="callout-icon">${card.tip.icon}</div>
+      <div class="callout-content"><div class="callout-label">Tip</div>${card.tip.text}</div>
+    </div>`;
+  }
+
+  if (card.warn) {
+    html += `<div class="callout callout-warn">
+      <div class="callout-icon">${card.warn.icon}</div>
+      <div class="callout-content"><div class="callout-label">Watch out</div>${card.warn.text}</div>
+    </div>`;
+  }
+
+  if (card.interview) {
+    html += `<div class="callout callout-interview">
+      <div class="callout-icon">🎯</div>
+      <div class="callout-content">
+        <div class="callout-label">Interview Question</div>
+        <div class="interview-q"><strong>Q:</strong>${card.interview.q}</div>
+        <div class="interview-a"><strong>A:</strong>${card.interview.a}</div>
+      </div>
+    </div>`;
+  }
+
+  html += `</div></div>`;
+  return html;
+}
+
+function init() {
+  const nav = document.getElementById('nav');
+  const content = document.getElementById('content');
+
+  sections.forEach((sec, si) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (si === 0 ? ' active' : '');
+    btn.textContent = sec.label;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+      const target = document.getElementById('sec-' + sec.id);
+      target.classList.add('visible');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    nav.appendChild(btn);
+
+    const secDiv = document.createElement('div');
+    secDiv.id = 'sec-' + sec.id;
+    secDiv.className = 'section' + (si === 0 ? ' visible' : '');
+
+    let inner = `<div class="section-header">
+      <div class="section-label">${sec.eyebrow}</div>
+      <div class="section-title">${sec.title}</div>
+    </div>`;
+
+    sec.cards.forEach((card, ci) => {
+      inner += buildCard(card);
+    });
+
+    secDiv.innerHTML = inner;
+    content.appendChild(secDiv);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

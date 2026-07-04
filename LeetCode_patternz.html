@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FAANG Pattern Revision Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #2a2a3a;
+    --accent: #7c6aff;
+    --accent2: #ff6a9e;
+    --accent3: #6affd4;
+    --accent4: #ffd06a;
+    --accent5: #ff9f6a;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --tag-bg: #1e1e2e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* HEADER */
+  header {
+    padding: 48px 40px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: linear-gradient(135deg, #0a0a0f 60%, #13101f);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; letter-spacing: -1px; }
+  h1 span { color: var(--accent); }
+  .badge {
+    background: var(--accent);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+  }
+  .filter-btn {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #1a1630;
+  }
+  .stats {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+  }
+  .stat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .stat span { color: var(--accent3); font-weight: 700; }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* MAIN GRID */
+  main {
+    padding: 32px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* TIER */
+  .tier { margin-bottom: 48px; }
+  .tier-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .tier-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tier-line { flex: 1; height: 1px; background: var(--border); }
+  .tier-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* GRID */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--card-accent, var(--accent));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .card:hover { border-color: #3a3a55; transform: translateY(-2px); }
+  .card:hover::before { opacity: 1; }
+  .card.done {
+    background: #111a17;
+    border-color: #1e3a2e;
+  }
+  .card.done::before { opacity: 1; background: var(--accent3); }
+
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .card-title { font-size: 1.1rem; font-weight: 600; line-height: 1.3; }
+  .card.done .card-title { color: var(--accent3); }
+
+  .checkbox {
+    width: 22px; height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    margin-top: 1px;
+  }
+  .card.done .checkbox {
+    background: var(--accent3);
+    border-color: var(--accent3);
+  }
+  .checkbox svg { display: none; }
+  .card.done .checkbox svg { display: block; }
+
+  .card-signal {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+  .card-signal strong { color: var(--accent4); font-weight: 400; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .tag {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: var(--muted);
+    letter-spacing: 0.3px;
+  }
+
+  .card-complexity {
+    display: flex;
+    gap: 16px;
+  }
+  .complexity-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+  .complexity-item span { color: var(--accent2); }
+
+  /* EXPANDED */
+  .card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  .card.expanded .card-body { max-height: 800px; }
+  .card-divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .template {
+    background: #0d0d15;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #b0b0cc;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .problems-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .problem-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .problem-item::before { content: '→'; color: var(--accent); }
+  .diff { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold;}
+  .diff.M { background: rgba(106, 255, 158, 0.1); color: #6aff9e; border: 1px solid #1e3a2e;}
+  .diff.H { background: rgba(255, 106, 106, 0.1); color: #ff6a6a; border: 1px solid #3a1e1e;}
+  .diff.E { background: rgba(106, 174, 255, 0.1); color: #6aaeff; border: 1px solid #1e2a3a;}
+
+  @media (max-width: 700px) {
+    header { padding: 24px 16px 20px; }
+    main { padding: 20px 16px; }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1>Google <span>Master</span> Matrix</h1>
+    <div class="badge">L4/L5 ARCHITECTURE</div>
+  </div>
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-tier="all">All</button>
+    <button class="filter-btn" data-tier="core">Core & Arrays</button>
+    <button class="filter-btn" data-tier="ds">Structures</button>
+    <button class="filter-btn" data-tier="graph">Graphs & Trees</button>
+    <button class="filter-btn" data-tier="dp">Dynamic Prog</button>
+    <button class="filter-btn" data-tier="advanced">Advanced Engine</button>
+  </div>
+  <div class="stats">
+    <div class="stat">Architectures Locked: <span id="done-count">0</span> / <span id="total-count">0</span></div>
+    <div class="stat">System Readiness: <span id="pct">0%</span></div>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
+</header>
+
+<main id="main"></main>
+
+<script>
+const data = {
+  tiers: [
+    {
+      id: "core",
+      label: "Tier 1 — Core Engines (Arrays, Windows, Intervals)",
+      color: "#7c6aff",
+      patterns: [
+        {
+          title: "Two Pointers (Collision)",
+          signal: "<strong>Signals:</strong> sorted array, pair/triplet sum, container water, trap rain",
+          tags: ["O(N)", "In-Place", "Sorted Input"],
+          time: "O(N)", space: "O(1)",
+          template: `l, r = 0, len(arr) - 1
+while l < r:
+    curr_sum = arr[l] + arr[r]
+    if curr_sum == target: return [l, r]
+    elif curr_sum < target: l += 1
+    else: r -= 1`,
+          problems: [
+            { name: "3Sum", diff: "M" },
+            { name: "Container With Most Water", diff: "M" },
+            { name: "Trapping Rain Water", diff: "H" },
+            { name: "Two Sum II", diff: "M" }
+          ]
+        },
+        {
+          title: "Dynamic Sliding Window",
+          signal: "<strong>Signals:</strong> Longest/Shortest contiguous, Minimum window containing",
+          tags: ["O(N)", "Subarray", "Variable Window"],
+          time: "O(N)", space: "O(K)",
+          template: `l = 0; max_len = 0
+for r in range(len(arr)):
+    # Add arr[r] to window state
+    while invalid_state():
+        # Remove arr[l] from window state
+        l += 1
+    max_len = max(max_len, r - l + 1)`,
+          problems: [
+            { name: "Longest Substring Without Repeating", diff: "M" },
+            { name: "Minimum Window Substring", diff: "H" },
+            { name: "Max Consecutive Ones III", diff: "M" },
+            { name: "Subarray Product Less Than K", diff: "M" }
+          ]
+        },
+        {
+          title: "Prefix Sum + Hash Map",
+          signal: "<strong>Signals:</strong> Subarrays summing to K, Divisible by K, negative numbers exist",
+          tags: ["O(N)", "Running Sum", "Hash Map"],
+          time: "O(N)", space: "O(N)",
+          template: `seen = {0: 1} # Base case
+curr_sum = 0; ans = 0
+for num in arr:
+    curr_sum += num
+    if curr_sum - k in seen:
+        ans += seen[curr_sum - k]
+    seen[curr_sum] = seen.get(curr_sum, 0) + 1`,
+          problems: [
+            { name: "Subarray Sum Equals K", diff: "M" },
+            { name: "Subarray Sums Divisible by K", diff: "M" },
+            { name: "Contiguous Array (0s and 1s)", diff: "M" },
+            { name: "Continuous Subarray Sum", diff: "M" }
+          ]
+        },
+        {
+          title: "Kadane's Algorithm",
+          signal: "<strong>Signals:</strong> Maximum contiguous subarray sum",
+          tags: ["O(N)", "Greedy", "Subarray"],
+          time: "O(N)", space: "O(1)",
+          template: `max_global = float('-inf')
+curr_sum = 0
+for num in arr:
+    curr_sum = max(num, curr_sum + num)
+    max_global = max(max_global, curr_sum)`,
+          problems: [
+            { name: "Maximum Subarray", diff: "M" },
+            { name: "Maximum Sum Circular Subarray", diff: "M" },
+            { name: "Maximum Product Subarray", diff: "M" },
+            { name: "Longest Turbulent Subarray", diff: "M" }
+          ]
+        },
+        {
+          title: "Dutch National Flag",
+          signal: "<strong>Signals:</strong> Sort colors, Partition array into 3 strict sections",
+          tags: ["O(N)", "3-Pointers", "In-Place"],
+          time: "O(N)", space: "O(1)",
+          template: `low, mid, high = 0, 0, len(nums) - 1
+while mid <= high:
+    if nums[mid] == 0:
+        nums[low], nums[mid] = nums[mid], nums[low]
+        low += 1; mid += 1
+    elif nums[mid] == 1:
+        mid += 1
+    else:
+        nums[high], nums[mid] = nums[mid], nums[high]
+        high -= 1`,
+          problems: [
+            { name: "Sort Colors", diff: "M" },
+            { name: "Partition Array According to Pivot", diff: "M" },
+            { name: "Wiggle Sort", diff: "M" }
+          ]
+        },
+        {
+          title: "Rotated Binary Search",
+          signal: "<strong>Signals:</strong> Find in rotated array, Find minimum drop-off (cliff)",
+          tags: ["O(log N)", "Binary Search", "Inflection"],
+          time: "O(log N)", space: "O(1)",
+          template: `l, r = 0, len(nums) - 1
+while l < r:
+    mid = (l + r) // 2
+    if nums[mid] > nums[r]:
+        # Drop is to the right
+        l = mid + 1
+    else:
+        # Right side is smooth hill
+        r = mid`,
+          problems: [
+            { name: "Find Minimum in Rotated Sorted Array", diff: "M" },
+            { name: "Search in Rotated Sorted Array", diff: "M" },
+            { name: "Search in Rotated Sorted Array II", diff: "M" }
+          ]
+        },
+        {
+          title: "Binary Search on Answer Space",
+          signal: "<strong>Signals:</strong> Minimize the maximum, Maximize the minimum, Koko eating bananas",
+          tags: ["O(N log M)", "Parametric Search", "Optimization"],
+          time: "O(N log(Range))", space: "O(1)",
+          template: `def is_valid(mid):
+    # Check if 'mid' works within constraints
+    pass
+
+l, r = min_possible, max_possible
+ans = -1
+while l <= r:
+    mid = (l + r) // 2
+    if is_valid(mid):
+        ans = mid
+        r = mid - 1 # Try to find smaller valid answer
+    else:
+        l = mid + 1`,
+          problems: [
+            { name: "Koko Eating Bananas", diff: "M" },
+            { name: "Capacity To Ship Packages Within D Days", diff: "M" },
+            { name: "Split Array Largest Sum", diff: "H" },
+            { name: "Minimize Max Distance to Gas Station", diff: "H" }
+          ]
+        },
+        {
+          title: "Line Sweep Algorithm",
+          signal: "<strong>Signals:</strong> Minimum meeting rooms, Max concurrent users, Overlapping times",
+          tags: ["O(N log N)", "Intervals", "Events"],
+          time: "O(N log N)", space: "O(N)",
+          template: `events = []
+for start, end in intervals:
+    events.append((start, 1))   # Arrival
+    events.append((end, -1))    # Departure
+    
+events.sort() # Sorts by time. End events process before Start if times equal
+curr_active = 0; max_active = 0
+for time, val in events:
+    curr_active += val
+    max_active = max(max_active, curr_active)`,
+          problems: [
+            { name: "Meeting Rooms II", diff: "M" },
+            { name: "My Calendar III", diff: "H" },
+            { name: "The Skyline Problem", diff: "H" },
+            { name: "Car Pooling", diff: "M" }
+          ]
+        }
+      ]
+    },
+    {
+      id: "ds",
+      label: "Tier 2 — Structural Engines (Stacks, Heaps, Lists, Tries)",
+      color: "#ff6a9e",
+      patterns: [
+        {
+          title: "Monotonic Stack",
+          signal: "<strong>Signals:</strong> Next greater/smaller element, Nearest warmer day, Histogram",
+          tags: ["O(N)", "Stack", "Next Available"],
+          time: "O(N)", space: "O(N)",
+          template: `stack = [] # Stores indices
+ans = [-1] * len(arr)
+for i, val in enumerate(arr):
+    # For Next Greater: pop when current > top
+    while stack and arr[stack[-1]] < val:
+        idx = stack.pop()
+        ans[idx] = val
+    stack.append(i)`,
+          problems: [
+            { name: "Daily Temperatures", diff: "M" },
+            { name: "Largest Rectangle in Histogram", diff: "H" },
+            { name: "Next Greater Element II", diff: "M" },
+            { name: "Sum of Subarray Minimums", diff: "M" }
+          ]
+        },
+        {
+          title: "Monotonic Queue (Deque)",
+          signal: "<strong>Signals:</strong> Sliding window maximum/minimum, Jump game bounding",
+          tags: ["O(N)", "Sliding Window", "Deque"],
+          time: "O(N)", space: "O(K)",
+          template: `from collections import deque
+q = deque() # Stores indices
+for i in range(len(arr)):
+    # Remove elements out of window k
+    if q and q[0] < i - k + 1:
+        q.popleft()
+    # Maintain descending order for Maximum
+    while q and arr[q[-1]] < arr[i]:
+        q.pop()
+    q.append(i)
+    if i >= k - 1: ans.append(arr[q[0]])`,
+          problems: [
+            { name: "Sliding Window Maximum", diff: "H" },
+            { name: "Jump Game VI", diff: "M" },
+            { name: "Longest Continuous Subarray With Abs Diff", diff: "M" }
+          ]
+        },
+        {
+          title: "Top K / Streaming Engine",
+          signal: "<strong>Signals:</strong> Kth largest, Top K frequent, Merge K sorted lists",
+          tags: ["O(N log K)", "Min-Heap", "Streaming"],
+          time: "O(N log K)", space: "O(K)",
+          template: `import heapq
+min_heap = []
+for val in arr:
+    heapq.heappush(min_heap, val)
+    if len(min_heap) > k:
+        heapq.heappop(min_heap)
+# Root of min_heap is the Kth largest element`,
+          problems: [
+            { name: "Kth Largest Element in an Array", diff: "M" },
+            { name: "Top K Frequent Elements", diff: "M" },
+            { name: "Merge k Sorted Lists", diff: "H" },
+            { name: "Find K Pairs with Smallest Sums", diff: "M" }
+          ]
+        },
+        {
+          title: "Two Heaps (Median Engine)",
+          signal: "<strong>Signals:</strong> Find median in data stream, Sliding window median",
+          tags: ["O(log N)", "Max-Heap", "Min-Heap"],
+          time: "O(log N) insert", space: "O(N)",
+          template: `import heapq
+# small is Max-Heap (invert vals), large is Min-Heap
+if len(small) == len(large):
+    heapq.heappush(large, -heapq.heappushpop(small, -num))
+else:
+    heapq.heappush(small, -heapq.heappushpop(large, num))
+    
+def get_median():
+    if len(small) == len(large):
+        return (large[0] - small[0]) / 2.0
+    return float(large[0])`,
+          problems: [
+            { name: "Find Median from Data Stream", diff: "H" },
+            { name: "Sliding Window Median", diff: "H" },
+            { name: "IPO", diff: "H" }
+          ]
+        },
+        {
+          title: "Fast & Slow Pointers (Floyd's)",
+          signal: "<strong>Signals:</strong> Detect cycle, Middle node, Find duplicate in 1-N array",
+          tags: ["O(N)", "Linked List", "Cycle Detect"],
+          time: "O(N)", space: "O(1)",
+          template: `slow, fast = head, head
+while fast and fast.next:
+    slow = slow.next
+    fast = fast.next.next
+    if slow == fast:
+        # Cycle detected. Find start:
+        slow = head
+        while slow != fast:
+            slow = slow.next
+            fast = fast.next
+        return slow # Start of cycle`,
+          problems: [
+            { name: "Linked List Cycle II", diff: "M" },
+            { name: "Find the Duplicate Number", diff: "M" },
+            { name: "Middle of the Linked List", diff: "E" }
+          ]
+        },
+        {
+          title: "Trie (Prefix Tree)",
+          signal: "<strong>Signals:</strong> Autocomplete, Word search with wildcards, Word Break",
+          tags: ["O(L)", "Strings", "Prefixes"],
+          time: "O(Length of Word)", space: "O(Nodes * Alphabet)",
+          template: `class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_word = False
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+    def insert(self, word):
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_word = True`,
+          problems: [
+            { name: "Implement Trie", diff: "M" },
+            { name: "Design Add and Search Words", diff: "M" },
+            { name: "Word Search II", diff: "H" },
+            { name: "Replace Words", diff: "M" }
+          ]
+        }
+      ]
+    },
+    {
+      id: "graph",
+      label: "Tier 3 — Graph & Tree Architectures",
+      color: "#6affd4",
+      patterns: [
+        {
+          title: "Level Order Traversal (Tree BFS)",
+          signal: "<strong>Signals:</strong> Right side view, Shortest path to leaf, Zigzag traversal",
+          tags: ["O(N)", "BFS", "Deque"],
+          time: "O(N)", space: "O(N)",
+          template: `from collections import deque
+q = deque([root])
+while q:
+    level_size = len(q)
+    level_nodes = []
+    # Process exact number of nodes in current level
+    for _ in range(level_size):
+        node = q.popleft()
+        level_nodes.append(node.val)
+        if node.left: q.append(node.left)
+        if node.right: q.append(node.right)
+    result.append(level_nodes)`,
+          problems: [
+            { name: "Binary Tree Right Side View", diff: "M" },
+            { name: "Binary Tree Zigzag Level Order", diff: "M" },
+            { name: "Populating Next Right Pointers", diff: "M" }
+          ]
+        },
+        {
+          title: "Matrix Traversal (Islands)",
+          signal: "<strong>Signals:</strong> Number of islands, Rotting oranges, Surrounded regions",
+          tags: ["O(R*C)", "DFS/BFS", "Grid"],
+          time: "O(R * C)", space: "O(R * C)",
+          template: `def dfs(r, c):
+    if r < 0 or c < 0 or r >= ROWS or c >= COLS or grid[r][c] == '0':
+        return
+    grid[r][c] = '0' # Mark visited (sink the island)
+    directions = [(1,0), (-1,0), (0,1), (0,-1)]
+    for dr, dc in directions:
+        dfs(r + dr, c + dc)
+
+islands = 0
+for r in range(ROWS):
+    for c in range(COLS):
+        if grid[r][c] == '1':
+            dfs(r, c)
+            islands += 1`,
+          problems: [
+            { name: "Number of Islands", diff: "M" },
+            { name: "Max Area of Island", diff: "M" },
+            { name: "Rotting Oranges", diff: "M" },
+            { name: "Word Search", diff: "M" }
+          ]
+        },
+        {
+          title: "Topological Sort (Kahn's)",
+          signal: "<strong>Signals:</strong> Prerequisites, Course Schedule, Alien Dictionary, Valid Order",
+          tags: ["O(V+E)", "DAG", "In-Degree"],
+          time: "O(V + E)", space: "O(V + E)",
+          template: `in_degree = {i: 0 for i in range(n)}
+for u, v in edges:
+    in_degree[v] += 1
+    
+q = deque([node for node in in_degree if in_degree[node] == 0])
+order = []
+
+while q:
+    node = q.popleft()
+    order.append(node)
+    for neighbor in graph[node]:
+        in_degree[neighbor] -= 1
+        if in_degree[neighbor] == 0:
+            q.append(neighbor)
+            
+if len(order) == n: return order # No cycle`,
+          problems: [
+            { name: "Course Schedule II", diff: "M" },
+            { name: "Alien Dictionary", diff: "H" },
+            { name: "Sequence Reconstruction", diff: "M" },
+            { name: "Find Eventual Safe States", diff: "M" }
+          ]
+        },
+        {
+          title: "Union-Find (Disjoint Set)",
+          signal: "<strong>Signals:</strong> Connected components, Redundant connection, Earliest friends",
+          tags: ["O(α(N))", "Sets", "Connectivity"],
+          time: "O(α(N))", space: "O(N)",
+          template: `parent = [i for i in range(n)]
+rank = [1] * n
+
+def find(x):
+    if parent[x] != x:
+        parent[x] = find(parent[x]) # Path Compression
+    return parent[x]
+
+def union(x, y):
+    p1, p2 = find(x), find(y)
+    if p1 == p2: return False # Already connected
+    # Union by Rank
+    if rank[p1] > rank[p2]:
+        parent[p2] = p1
+    elif rank[p1] < rank[p2]:
+        parent[p1] = p2
+    else:
+        parent[p2] = p1; rank[p1] += 1
+    return True`,
+          problems: [
+            { name: "Redundant Connection", diff: "M" },
+            { name: "Number of Connected Components", diff: "M" },
+            { name: "Accounts Merge", diff: "M" },
+            { name: "Evaluate Division", diff: "M" }
+          ]
+        },
+        {
+          title: "Dijkstra's Algorithm",
+          signal: "<strong>Signals:</strong> Shortest path in weighted graph, Network delay time",
+          tags: ["O(E log V)", "Min-Heap", "Shortest Path"],
+          time: "O(E log V)", space: "O(V + E)",
+          template: `import heapq
+min_heap = [(0, start)]
+shortest_paths = {}
+
+while min_heap:
+    curr_weight, curr_node = heapq.heappop(min_heap)
+    if curr_node in shortest_paths: continue
+    shortest_paths[curr_node] = curr_weight
+    
+    for neighbor, edge_weight in graph[curr_node]:
+        if neighbor not in shortest_paths:
+            heapq.heappush(min_heap, (curr_weight + edge_weight, neighbor))`,
+          problems: [
+            { name: "Network Delay Time", diff: "M" },
+            { name: "Path With Minimum Effort", diff: "M" },
+            { name: "Cheapest Flights Within K Stops", diff: "M" }
+          ]
+        }
+      ]
+    },
+    {
+      id: "dp",
+      label: "Tier 4 — Dynamic Programming",
+      color: "#ffd06a",
+      patterns: [
+        {
+          title: "1D DP & State Machines",
+          signal: "<strong>Signals:</strong> House Robber, Buy and Sell Stock with Cooldown, Max ways",
+          tags: ["O(N)", "Linear", "Overlapping Subproblems"],
+          time: "O(N)", space: "O(1) or O(N)",
+          template: `# House Robber (O(1) space)
+rob1, rob2 = 0, 0
+for num in nums:
+    temp = max(num + rob1, rob2)
+    rob1 = rob2
+    rob2 = temp
+return rob2
+
+# Top-Down with @cache
+from functools import cache
+@cache
+def dfs(i):
+    if i >= len(nums): return 0
+    return max(dfs(i+1), nums[i] + dfs(i+2))`,
+          problems: [
+            { name: "House Robber", diff: "M" },
+            { name: "Best Time to Buy and Sell Stock with Cooldown", diff: "M" },
+            { name: "Decode Ways", diff: "M" },
+            { name: "Jump Game II", diff: "M" }
+          ]
+        },
+        {
+          title: "Grid / Matrix (2D DP)",
+          signal: "<strong>Signals:</strong> Unique Paths, Edit Distance, Longest Common Subsequence",
+          tags: ["O(M*N)", "Matrix", "Sequences"],
+          time: "O(M * N)", space: "O(M * N)",
+          template: `# LCS Template
+dp = [[0 for j in range(len(s2)+1)] for i in range(len(s1)+1)]
+
+for i in range(len(s1) - 1, -1, -1):
+    for j in range(len(s2) - 1, -1, -1):
+        if s1[i] == s2[j]:
+            dp[i][j] = 1 + dp[i+1][j+1]
+        else:
+            dp[i][j] = max(dp[i][j+1], dp[i+1][j])
+return dp[0][0]`,
+          problems: [
+            { name: "Longest Common Subsequence", diff: "M" },
+            { name: "Edit Distance", diff: "H" },
+            { name: "Unique Paths II", diff: "M" },
+            { name: "Minimum Path Sum", diff: "M" }
+          ]
+        },
+        {
+          title: "Knapsack (0/1 & Unbounded)",
+          signal: "<strong>Signals:</strong> Subset sum, Coin Change, Partition array",
+          tags: ["O(N*W)", "Capacity", "Target"],
+          time: "O(N * Target)", space: "O(Target)",
+          template: `# Coin Change (Unbounded - count forwards)
+dp = [float('inf')] * (amount + 1)
+dp[0] = 0
+
+for coin in coins:
+    for x in range(coin, amount + 1):
+        dp[x] = min(dp[x], dp[x - coin] + 1)
+
+# 0/1 Knapsack (count backwards to avoid reuse)
+for weight, val in items:
+    for w in range(Capacity, weight - 1, -1):
+        dp[w] = max(dp[w], dp[w - weight] + val)`,
+          problems: [
+            { name: "Coin Change", diff: "M" },
+            { name: "Partition Equal Subset Sum", diff: "M" },
+            { name: "Target Sum", diff: "M" },
+            { name: "Combination Sum IV", diff: "M" }
+          ]
+        },
+        {
+          title: "Interval / Partition DP",
+          signal: "<strong>Signals:</strong> Burst balloons, Matrix chain multiplication, Minimum cost to merge",
+          tags: ["O(N^3)", "Split Point", "Range"],
+          time: "O(N^3)", space: "O(N^2)",
+          template: `# Burst Balloons Top-Down
+nums = [1] + nums + [1]
+@cache
+def dfs(l, r):
+    if l > r: return 0
+    dp = 0
+    for i in range(l, r + 1):
+        coins = nums[l-1] * nums[i] * nums[r+1]
+        coins += dfs(l, i - 1) + dfs(i + 1, r)
+        dp = max(dp, coins)
+    return dp
+return dfs(1, len(nums) - 2)`,
+          problems: [
+            { name: "Burst Balloons", diff: "H" },
+            { name: "Minimum Cost to Merge Stones", diff: "H" },
+            { name: "Palindrome Partitioning II", diff: "H" }
+          ]
+        }
+      ]
+    },
+    {
+      id: "advanced",
+      label: "Tier 5 — Advanced Engines (Bits, Tries, Segment)",
+      color: "#ff9f6a",
+      patterns: [
+        {
+          title: "Backtracking (DFS Subsets/Permutations)",
+          signal: "<strong>Signals:</strong> Generate all possible combinations, Sudoku, N-Queens",
+          tags: ["O(2^N)", "DFS", "Pruning"],
+          time: "O(2^N) or O(N!)", space: "O(N)",
+          template: `res = []; subset = []
+def dfs(i):
+    if i >= len(nums):
+        res.append(subset.copy())
+        return
+    # Decision to include nums[i]
+    subset.append(nums[i])
+    dfs(i + 1)
+    
+    # Decision NOT to include nums[i]
+    subset.pop()
+    dfs(i + 1)
+dfs(0)`,
+          problems: [
+            { name: "Subsets II", diff: "M" },
+            { name: "Permutations", diff: "M" },
+            { name: "Combination Sum", diff: "M" },
+            { name: "N-Queens", diff: "H" }
+          ]
+        },
+        {
+          title: "XOR Engine",
+          signal: "<strong>Signals:</strong> Find the single number, Missing number, Cancel duplicates",
+          tags: ["O(N)", "Bitwise", "Constant Space"],
+          time: "O(N)", space: "O(1)",
+          template: `# A ^ A = 0
+# A ^ 0 = A
+res = 0
+for num in nums:
+    res ^= num
+return res`,
+          problems: [
+            { name: "Single Number", diff: "E" },
+            { name: "Missing Number", diff: "E" },
+            { name: "Single Number III", diff: "M" }
+          ]
+        },
+        {
+          title: "Brian Kernighan's Algorithm",
+          signal: "<strong>Signals:</strong> Count set bits, Power of two, Hamming weight",
+          tags: ["O(1) per bit", "Bitwise"],
+          time: "O(1) per set bit", space: "O(1)",
+          template: `# Power of 2 check:
+return n > 0 and (n & (n - 1)) == 0
+
+# Count set bits (Hamming Weight):
+count = 0
+while n:
+    n = n & (n - 1) # Flips lowest '1' bit to '0'
+    count += 1
+return count`,
+          problems: [
+            { name: "Number of 1 Bits", diff: "E" },
+            { name: "Power of Two", diff: "E" },
+            { name: "Counting Bits", diff: "E" }
+          ]
+        },
+        {
+          title: "Binary Indexed Tree (Fenwick)",
+          signal: "<strong>Signals:</strong> Range sum queries with point updates, Count smaller numbers after self",
+          tags: ["O(log N)", "Range Query", "Update"],
+          time: "O(log N) query", space: "O(N)",
+          template: `bit = [0] * (n + 1)
+
+def update(i, delta):
+    while i <= n:
+        bit[i] += delta
+        i += i & (-i) # Move to next responsible node
+
+def query(i): # Gets prefix sum 1 to i
+    s = 0
+    while i > 0:
+        s += bit[i]
+        i -= i & (-i) # Move to parent node
+    return s`,
+          problems: [
+            { name: "Range Sum Query - Mutable", diff: "M" },
+            { name: "Count of Smaller Numbers After Self", diff: "H" },
+            { name: "Reverse Pairs", diff: "H" }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+const main = document.getElementById('main');
+const filters = document.getElementById('filters');
+let activeTier = 'all';
+
+function render() {
+  main.innerHTML = '';
+  data.tiers.forEach(tier => {
+    if (activeTier !== 'all' && activeTier !== tier.id) return;
+    const section = document.createElement('div');
+    section.className = 'tier';
+    section.innerHTML = `
+      <div class="tier-header">
+        <div class="tier-dot" style="background:${tier.color}"></div>
+        <div class="tier-label">${tier.label}</div>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid" id="grid-${tier.id}"></div>
+    `;
+    main.appendChild(section);
+    const grid = section.querySelector(`#grid-${tier.id}`);
+    tier.patterns.forEach((p, pi) => {
+      const key = `faang-${tier.id}-${pi}`;
+      const done = localStorage.getItem(key) === '1';
+      const card = document.createElement('div');
+      card.className = 'card' + (done ? ' done' : '');
+      card.style.setProperty('--card-accent', tier.color);
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-title">${p.title}</div>
+          <div class="checkbox">
+            <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+              <path d="M1 5L4.5 8.5L11 1.5" stroke="#0a0a0f" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-signal">${p.signal}</div>
+        <div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <div class="card-complexity">
+          <div class="complexity-item">Time: <span>${p.time}</span></div>
+          <div class="complexity-item">Space: <span>${p.space}</span></div>
+        </div>
+        <div class="card-body">
+          <div class="card-divider"></div>
+          <div class="section-label">Core Python Blueprint</div>
+          <div class="template">${p.template}</div>
+          <div class="section-label">Target LeetCode Drill</div>
+          <div class="problems-list">
+            ${p.problems.map(prob=>`
+              <div class="problem-item">
+                ${prob.name}
+                <span class="diff ${prob.diff}">${prob.diff === 'M' ? 'Medium' : prob.diff === 'H' ? 'Hard' : 'Easy'}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      // Click expand
+      card.addEventListener('click', (e) => {
+        const isCheckbox = e.target.closest('.checkbox');
+        if (!isCheckbox) {
+          // THE NEW LOGIC: Close all other cards first
+          const isCurrentlyExpanded = card.classList.contains('expanded');
+          
+          // Remove 'expanded' from every single card
+          document.querySelectorAll('.card.expanded').forEach(c => {
+            c.classList.remove('expanded');
+          });
+
+          // If the card we clicked wasn't already open, open it now
+          if (!isCurrentlyExpanded) {
+            card.classList.add('expanded');
+          }
+        }
+      });
+
+      // ADD THIS BACK IN: Checkbox logic
+      card.querySelector('.checkbox').addEventListener('click', (e) => {
+        e.stopPropagation(); // Stops the click from triggering the accordion
+        card.classList.toggle('done');
+        const isDone = card.classList.contains('done');
+        localStorage.setItem(key, isDone ? '1' : '0');
+        updateStats();
+      });
+
+      grid.appendChild(card);
+    });
+  });
+  updateStats();
+}
+
+function updateStats() {
+  let total = 0, done = 0;
+  data.tiers.forEach((tier) => {
+    tier.patterns.forEach((p, pi) => {
+      total++;
+      if (localStorage.getItem(`faang-${tier.id}-${pi}`) === '1') done++;
+    });
+  });
+  document.getElementById('done-count').textContent = done;
+  document.getElementById('total-count').textContent = total;
+  document.getElementById('pct').textContent = Math.round(done/total*100) + '%';
+  document.getElementById('prog-bar').style.width = (done/total*100) + '%';
+}
+
+filters.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    filters.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTier = btn.dataset.tier;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>

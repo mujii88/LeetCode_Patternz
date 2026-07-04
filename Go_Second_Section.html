@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Go Language — Deep Dive Guide</title>
+<style>
+  /* ── Tokens ────────────────────────────────────── */
+  :root{
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #1f2937;
+    --border:    #2d3748;
+    --cyan:      #00d4e6;
+    --violet:    #a78bfa;
+    --rose:      #f472b6;
+    --amber:     #fbbf24;
+    --green:     #34d399;
+    --text:      #e2e8f0;
+    --muted:     #94a3b8;
+    --code-bg:   #111827;
+    --tag-bg:    #1e293b;
+  }
+
+  /* ── Reset ─────────────────────────────────────── */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Segoe UI',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.7;
+    font-size:15px;
+  }
+
+  /* ── Scrollbar ──────────────────────────────────── */
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--cyan)}
+
+  /* ── Layout ─────────────────────────────────────── */
+  .wrapper{display:flex;min-height:100vh}
+
+  /* ── Sidebar ────────────────────────────────────── */
+  .sidebar{
+    width:240px;
+    flex-shrink:0;
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+    padding:1.5rem 0;
+  }
+  .sidebar-logo{
+    padding:0 1.2rem 1.5rem;
+    font-size:1.1rem;
+    font-weight:700;
+    letter-spacing:.05em;
+    color:var(--cyan);
+    display:flex;align-items:center;gap:.5rem;
+    border-bottom:1px solid var(--border);
+  }
+  .sidebar-logo span{font-size:1.6rem}
+  nav ul{list-style:none;padding-top:.8rem}
+  nav ul li a{
+    display:block;
+    padding:.5rem 1.4rem;
+    color:var(--muted);
+    text-decoration:none;
+    font-size:.85rem;
+    border-left:2px solid transparent;
+    transition:all .2s;
+  }
+  nav ul li a:hover,
+  nav ul li a.active{
+    color:var(--cyan);
+    border-left-color:var(--cyan);
+    background:rgba(0,212,230,.06);
+  }
+  nav .section-label{
+    padding:.9rem 1.4rem .3rem;
+    font-size:.7rem;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--border);
+    font-weight:600;
+  }
+
+  /* ── Main ────────────────────────────────────────── */
+  main{flex:1;max-width:900px;padding:2.5rem 2rem;margin:0 auto}
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero{
+    background:linear-gradient(135deg,#0d1117 0%,#1a1f35 50%,#0d1117 100%);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:3rem 2.5rem;
+    margin-bottom:3rem;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:'';
+    position:absolute;inset:0;
+    background:radial-gradient(ellipse 60% 60% at 80% 20%, rgba(0,212,230,.12) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .hero-tag{
+    display:inline-block;
+    background:rgba(0,212,230,.12);
+    color:var(--cyan);
+    border:1px solid rgba(0,212,230,.3);
+    border-radius:50px;
+    padding:.25rem .9rem;
+    font-size:.75rem;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin-bottom:1rem;
+  }
+  .hero h1{
+    font-size:2.5rem;
+    font-weight:800;
+    line-height:1.1;
+    background:linear-gradient(120deg,var(--cyan) 0%,var(--violet) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:.75rem;
+  }
+  .hero p{color:var(--muted);font-size:1rem;max-width:540px}
+  .hero-pills{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem}
+  .pill{
+    background:var(--tag-bg);
+    border:1px solid var(--border);
+    border-radius:50px;
+    padding:.2rem .8rem;
+    font-size:.78rem;
+    color:var(--muted);
+  }
+  .pill.c{color:var(--cyan);border-color:rgba(0,212,230,.25)}
+  .pill.v{color:var(--violet);border-color:rgba(167,139,250,.25)}
+  .pill.g{color:var(--green);border-color:rgba(52,211,153,.25)}
+
+  /* ── Section ─────────────────────────────────────── */
+  .topic{margin-bottom:3.5rem}
+  .topic-header{
+    display:flex;align-items:center;gap:.75rem;
+    margin-bottom:1.5rem;
+    padding-bottom:1rem;
+    border-bottom:1px solid var(--border);
+  }
+  .topic-icon{
+    width:40px;height:40px;
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.2rem;
+    flex-shrink:0;
+  }
+  .icon-cyan{background:rgba(0,212,230,.12);color:var(--cyan)}
+  .icon-violet{background:rgba(167,139,250,.12);color:var(--violet)}
+  .icon-rose{background:rgba(244,114,182,.12);color:var(--rose)}
+  .icon-amber{background:rgba(251,191,36,.12);color:var(--amber)}
+  .icon-green{background:rgba(52,211,153,.12);color:var(--green)}
+  .topic-header h2{
+    font-size:1.4rem;font-weight:700;
+    color:var(--text);
+  }
+  .topic p,.topic li{color:var(--muted);margin-bottom:.5rem}
+  .topic ul,.topic ol{padding-left:1.2rem;margin-bottom:1rem}
+  .topic li::marker{color:var(--cyan)}
+
+  /* ── Cards ───────────────────────────────────────── */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:1.4rem 1.5rem;
+    margin-bottom:1.2rem;
+  }
+  .card h3{
+    font-size:1rem;font-weight:600;
+    margin-bottom:.6rem;
+    color:var(--text);
+  }
+  .card p,.card li{font-size:.9rem;color:var(--muted)}
+
+  /* ── Info boxes ──────────────────────────────────── */
+  .info-box{
+    display:flex;gap:.75rem;
+    padding:1rem 1.2rem;
+    border-radius:10px;
+    margin-bottom:1rem;
+    font-size:.88rem;
+  }
+  .info-box .ib-icon{font-size:1.1rem;flex-shrink:0;margin-top:.05rem}
+  .info-tip{background:rgba(0,212,230,.07);border:1px solid rgba(0,212,230,.2)}
+  .info-tip .ib-icon{color:var(--cyan)}
+  .info-warn{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2)}
+  .info-warn .ib-icon{color:var(--amber)}
+  .info-note{background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2)}
+  .info-note .ib-icon{color:var(--violet)}
+
+  /* ── Code blocks ─────────────────────────────────── */
+  .code-wrap{
+    position:relative;
+    margin:1rem 0;
+  }
+  .code-label{
+    position:absolute;top:.6rem;left:1rem;
+    font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);font-weight:600;
+  }
+  .copy-btn{
+    position:absolute;top:.5rem;right:.75rem;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    color:var(--muted);
+    border-radius:6px;
+    padding:.25rem .65rem;
+    font-size:.7rem;
+    cursor:pointer;
+    transition:all .2s;
+    font-family:inherit;
+  }
+  .copy-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+  pre{
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:2.2rem 1.2rem 1.2rem;
+    overflow-x:auto;
+    font-size:.84rem;
+    line-height:1.65;
+  }
+  code{font-family:'Cascadia Code','Fira Code',monospace}
+  .kw{color:#7ee8f8}
+  .fn{color:#dab4f5}
+  .str{color:#a8e6a3}
+  .cm{color:#546e7a;font-style:italic}
+  .tp{color:#fbbf24}
+  .lit{color:#f9a8d4}
+  .op{color:#94a3b8}
+
+  /* ── Interview accordion ─────────────────────────── */
+  .qa-section{margin-top:2rem}
+  .qa-section-title{
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--cyan);
+    font-weight:700;
+    margin-bottom:.8rem;
+    display:flex;align-items:center;gap:.4rem;
+  }
+  .qa-section-title::after{
+    content:'';flex:1;height:1px;background:var(--border);
+  }
+  .qa-item{
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin-bottom:.6rem;
+    overflow:hidden;
+    transition:border-color .2s;
+  }
+  .qa-item:hover{border-color:rgba(0,212,230,.3)}
+  .qa-q{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:.85rem 1.1rem;
+    cursor:pointer;
+    background:var(--surface);
+    user-select:none;
+    gap:.75rem;
+  }
+  .qa-q:hover{background:var(--surface2)}
+  .qa-q-text{
+    font-size:.9rem;font-weight:500;color:var(--text);
+  }
+  .qa-badge{
+    flex-shrink:0;
+    font-size:.65rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;
+    padding:.15rem .55rem;border-radius:50px;
+  }
+  .qa-badge.easy{background:rgba(52,211,153,.15);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+  .qa-badge.medium{background:rgba(251,191,36,.15);color:var(--amber);border:1px solid rgba(251,191,36,.3)}
+  .qa-badge.hard{background:rgba(244,114,182,.15);color:var(--rose);border:1px solid rgba(244,114,182,.3)}
+  .qa-chevron{
+    flex-shrink:0;
+    color:var(--muted);font-size:.8rem;
+    transition:transform .25s;
+  }
+  .qa-item.open .qa-chevron{transform:rotate(180deg);color:var(--cyan)}
+  .qa-a{
+    display:none;
+    padding:1rem 1.1rem 1.1rem;
+    background:var(--code-bg);
+    border-top:1px solid var(--border);
+    font-size:.88rem;color:var(--muted);
+    line-height:1.8;
+  }
+  .qa-item.open .qa-a{display:block}
+  .qa-a code{
+    background:rgba(0,212,230,.08);
+    color:var(--cyan);
+    padding:.05rem .3rem;
+    border-radius:4px;
+    font-size:.82rem;
+  }
+
+  /* ── Table ───────────────────────────────────────── */
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.88rem}
+  th{
+    background:var(--surface2);
+    color:var(--cyan);
+    text-align:left;
+    padding:.6rem 1rem;
+    font-size:.78rem;
+    text-transform:uppercase;letter-spacing:.06em;
+  }
+  td{padding:.55rem 1rem;border-bottom:1px solid var(--border);color:var(--muted)}
+  tr:hover td{background:rgba(255,255,255,.02)}
+
+  /* ── Progress bar ────────────────────────────────── */
+  .progress-bar{
+    height:4px;background:var(--border);border-radius:2px;margin-top:.3rem;
+  }
+  .progress-fill{
+    height:100%;border-radius:2px;
+    background:linear-gradient(90deg,var(--cyan),var(--violet));
+  }
+
+  /* ── Top progress line ───────────────────────────── */
+  #top-progress{
+    position:fixed;top:0;left:0;right:0;
+    height:3px;
+    background:linear-gradient(90deg,var(--cyan),var(--violet),var(--rose));
+    transform-origin:left;
+    transform:scaleX(0);
+    z-index:999;
+    transition:transform .1s;
+  }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media(max-width:768px){
+    .sidebar{display:none}
+    main{padding:1.5rem 1rem}
+    .hero h1{font-size:1.8rem}
+  }
+</style>
+</head>
+<body>
+<div id="top-progress"></div>
+<div class="wrapper">
+
+<!-- ═══ SIDEBAR ══════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo"><span>🐹</span>Go Deep Dive</div>
+  <nav>
+    <div class="section-label">Core Topics</div>
+    <ul>
+      <li><a href="#pointers">📍 Pointers</a></li>
+      <li><a href="#structs">🏗️ Structs</a></li>
+      <li><a href="#interfaces">🔗 Interfaces</a></li>
+    </ul>
+    <div class="section-label">Extra Concepts</div>
+    <ul>
+      <li><a href="#methods">⚙️ Methods &amp; Receivers</a></li>
+      <li><a href="#embedding">🧩 Struct Embedding</a></li>
+      <li><a href="#constructors">🔨 Constructors</a></li>
+    </ul>
+    <div class="section-label">Interview Prep</div>
+    <ul>
+      <li><a href="#iq-pointers">Q&amp;A: Pointers</a></li>
+      <li><a href="#iq-structs">Q&amp;A: Structs</a></li>
+      <li><a href="#iq-interfaces">Q&amp;A: Interfaces</a></li>
+    </ul>
+  </nav>
+</aside>
+
+<!-- ═══ MAIN ══════════════════════════════════════════════ -->
+<main>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-tag">Study Guide</div>
+    <h1>Go Language<br/>Deep Dive</h1>
+    <p>Pointers, Structs, Interfaces — explained with real code, interview Q&amp;A, and practical patterns.</p>
+    <div class="hero-pills">
+      <span class="pill c">Pointers</span>
+      <span class="pill v">Structs</span>
+      <span class="pill g">Interfaces</span>
+      <span class="pill c">Methods</span>
+      <span class="pill v">Embedding</span>
+      <span class="pill g">Constructors</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ POINTERS ═══════════════════════════ -->
+  <section class="topic" id="pointers">
+    <div class="topic-header">
+      <div class="topic-icon icon-cyan">📍</div>
+      <h2>Pointers</h2>
+    </div>
+
+    <p>A <strong>pointer</strong> stores the memory address of another variable. In Go, all function arguments are <strong>passed by value</strong> (a copy is made). If you need a function to modify the original variable, you pass a pointer instead.</p>
+
+    <div class="info-box info-tip">
+      <div class="ib-icon">💡</div>
+      <div>Use <code>&amp;variable</code> to get its memory address, and <code>*pointer</code> to dereference it (access or change the value it points to).</div>
+    </div>
+
+    <table>
+      <tr><th>Operator</th><th>Name</th><th>What it does</th></tr>
+      <tr><td><code>&amp;</code></td><td>Address-of</td><td>Returns the memory address of a variable</td></tr>
+      <tr><td><code>*T</code></td><td>Pointer type</td><td>Declares a pointer to a value of type T</td></tr>
+      <tr><td><code>*ptr</code></td><td>Dereference</td><td>Reads or writes the value at the pointer's address</td></tr>
+    </table>
+
+    <!-- Pass by value -->
+    <div class="card">
+      <h3>❌ Pass by Value (original not modified)</h3>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="kw">func</span> <span class="fn">changeValue</span>(a <span class="tp">int</span>) {
+    a = 100  <span class="cm">// only modifies the local copy</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    i := <span class="lit">1</span>
+    <span class="fn">changeValue</span>(i)
+    fmt.<span class="fn">Println</span>(i)  <span class="cm">// Output: 1  (unchanged!)</span>
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Pass by pointer -->
+    <div class="card">
+      <h3>✅ Pass by Pointer (original is modified)</h3>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="cm">// *int means: a is a pointer to an int</span>
+<span class="kw">func</span> <span class="fn">changeValue</span>(a *<span class="tp">int</span>) {
+    *a = 100  <span class="cm">// dereference and write to original</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    i := <span class="lit">1</span>
+    <span class="fn">changeValue</span>(&amp;i)       <span class="cm">// pass address of i</span>
+    fmt.<span class="fn">Println</span>(i)        <span class="cm">// Output: 100  ✓</span>
+
+    <span class="cm">// Pointer basics</span>
+    p := &amp;i              <span class="cm">// p holds the address of i</span>
+    fmt.<span class="fn">Println</span>(p)       <span class="cm">// e.g. 0xc0000140a8</span>
+    fmt.<span class="fn">Println</span>(*p)      <span class="cm">// 100  (dereference)</span>
+    *p = 42
+    fmt.<span class="fn">Println</span>(i)       <span class="cm">// 42  (i changed via pointer)</span>
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- nil pointer -->
+    <div class="card">
+      <h3>⚠️ Nil Pointers — Always Check!</h3>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="kw">var</span> p *<span class="tp">int</span>    <span class="cm">// zero value of a pointer is nil</span>
+
+<span class="kw">if</span> p == <span class="tp">nil</span> {
+    fmt.<span class="fn">Println</span>(<span class="str">"pointer is nil — don't dereference!"</span>)
+}
+
+<span class="cm">// Dereferencing nil causes a runtime panic:
+// *p = 5  ← PANIC: invalid memory address</span></code></pre>
+      </div>
+    </div>
+
+    <div class="info-box info-warn">
+      <div class="ib-icon">⚠️</div>
+      <div>Dereferencing a <code>nil</code> pointer causes a <strong>runtime panic</strong> in Go. Always guard pointer usage with nil checks when the pointer might not be set.</div>
+    </div>
+
+    <!-- Interview Q&A Pointers -->
+    <div class="qa-section" id="iq-pointers">
+      <div class="qa-section-title">Interview Q&amp;A — Pointers</div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q1. What is the zero value of a pointer in Go?</span>
+          <span class="qa-badge easy">Easy</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          The zero value of any pointer type in Go is <code>nil</code>. A nil pointer means the pointer doesn't point to any valid memory address. Dereferencing a nil pointer causes a <strong>runtime panic</strong>, so you should always check <code>if ptr != nil</code> before using it.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q2. What is the difference between pass by value and pass by reference in Go?</span>
+          <span class="qa-badge easy">Easy</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          Go is strictly <strong>pass by value</strong> — every function call receives a copy of the argument. However, you can simulate pass by reference by passing a <strong>pointer</strong> (<code>&amp;variable</code>). The function then receives a copy of the pointer (the address), and can use <code>*ptr</code> to read/modify the original value. Slices, maps, and channels already contain internal pointers, so their contents can be modified without explicit pointer syntax.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q3. When should you use pointers vs values in Go?</span>
+          <span class="qa-badge medium">Medium</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          Use a <strong>pointer</strong> when:
+          <ul style="margin:.5rem 0 0 1rem">
+            <li>You want a function to <strong>modify</strong> the original value</li>
+            <li>The struct is <strong>large</strong> (copying is expensive)</li>
+            <li>You want to express "optional" data (<code>nil</code> vs zero value)</li>
+            <li>All methods on a type use pointer receivers (consistency)</li>
+          </ul>
+          Use a <strong>value</strong> when:
+          <ul style="margin:.5rem 0 0 1rem">
+            <li>The type is small (int, bool, small struct)</li>
+            <li>You want <strong>immutability</strong> — the function should not change the caller's data</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q4. What does the `new()` built-in do?</span>
+          <span class="qa-badge medium">Medium</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          <code>new(T)</code> allocates memory for a value of type <code>T</code>, zeroes it, and returns a <strong>pointer</strong> to it (<code>*T</code>).
+          <br/><br/>
+          Example: <code>p := new(int)</code> → <code>p</code> is a <code>*int</code> pointing to a zeroed int (0).
+          This is equivalent to <code>var x int; p := &amp;x</code>.
+          In modern Go code, <code>new()</code> is rarely used for structs; the composite literal pattern like <code>&amp;MyStruct{}</code> is preferred instead.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q5. Can you return a pointer to a local variable in Go?</span>
+          <span class="qa-badge hard">Hard</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          Yes! This is safe in Go. Go's <strong>escape analysis</strong> detects that the local variable's address is being returned and automatically allocates it on the <strong>heap</strong> instead of the stack. The garbage collector manages its lifetime. This is a fundamental difference from C/C++ where returning a pointer to a local stack variable causes undefined behavior.
+          <br/><br/>
+          Example: <code>func newInt() *int { x := 42; return &amp;x }</code> is perfectly valid in Go.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ STRUCTS ════════════════════════════ -->
+  <section class="topic" id="structs">
+    <div class="topic-header">
+      <div class="topic-icon icon-violet">🏗️</div>
+      <h2>Structs</h2>
+    </div>
+
+    <p>Structs are Go's answer to classes. They let you group related fields together under a named type. Go intentionally has no class keyword — structs + methods + interfaces cover everything classes do.</p>
+
+    <div class="info-box info-note">
+      <div class="ib-icon">📖</div>
+      <div>Structs in Go are <strong>value types</strong>. Assigning one struct to another creates a full copy of all fields.</div>
+    </div>
+
+    <!-- Declaring -->
+    <div class="card">
+      <h3>Declaring a Struct</h3>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="kw">type</span> <span class="tp">Order</span> <span class="kw">struct</span> {
+    ID     <span class="tp">int</span>
+    Name   <span class="tp">string</span>
+    Amount <span class="tp">float32</span>
+    Status <span class="tp">string</span>
+}
+
+<span class="cm">// Anonymous/inline struct (useful for one-off values)</span>
+lang := <span class="kw">struct</span> {
+    Name <span class="tp">string</span>
+    Year <span class="tp">int</span>
+}{<span class="str">"Go"</span>, <span class="lit">2009</span>}</code></pre>
+      </div>
+    </div>
+
+    <!-- Instantiating -->
+    <div class="card">
+      <h3>Creating Instances</h3>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="cm">// Named fields (recommended — order-independent, self-documenting)</span>
+myOrder := <span class="tp">Order</span>{
+    ID:     <span class="lit">2</span>,
+    Name:   <span class="str">"Mujtaba"</span>,
+    Amount: <span class="lit">99.99</span>,
+    Status: <span class="str">"pending"</span>,
+}
+
+<span class="cm">// Positional (fragile — breaks if fields are reordered)</span>
+o2 := <span class="tp">Order</span>{<span class="lit">3</span>, <span class="str">"Ali"</span>, <span class="lit">50.0</span>, <span class="str">"shipped"</span>}
+
+<span class="cm">// Pointer to struct</span>
+op := &amp;<span class="tp">Order</span>{ID: <span class="lit">4</span>, Name: <span class="str">"Sara"</span>}
+
+<span class="cm">// Access fields with dot notation</span>
+fmt.<span class="fn">Println</span>(myOrder.Name)    <span class="cm">// Mujtaba</span>
+myOrder.Status = <span class="str">"paid"</span>      <span class="cm">// modify a field</span>
+fmt.<span class="fn">Println</span>(op.ID)           <span class="cm">// 4 (Go auto-dereferences: op.ID = (*op).ID)</span></code></pre>
+      </div>
+    </div>
+
+    <!-- Methods & Receivers -->
+    <section id="methods">
+      <div class="card">
+        <h3>⚙️ Methods &amp; Receivers</h3>
+        <p style="font-size:.88rem;color:var(--muted);margin-bottom:.8rem">A method is a function with a <strong>receiver</strong> argument — it attaches the function to the struct type.</p>
+        <div class="code-wrap">
+          <span class="code-label">go</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><code><span class="cm">// VALUE receiver — reads only, works on a copy</span>
+<span class="kw">func</span> (o <span class="tp">Order</span>) <span class="fn">Summary</span>() <span class="tp">string</span> {
+    <span class="kw">return</span> fmt.<span class="fn">Sprintf</span>(<span class="str">"Order #%d by %s — $%.2f"</span>, o.ID, o.Name, o.Amount)
+}
+
+<span class="cm">// POINTER receiver — can modify the original struct</span>
+<span class="kw">func</span> (o *<span class="tp">Order</span>) <span class="fn">UpdateStatus</span>(status <span class="tp">string</span>) {
+    o.Status = status  <span class="cm">// no need to write (*o).Status — Go auto-dereferences</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    myOrder := <span class="tp">Order</span>{ID: <span class="lit">1</span>, Name: <span class="str">"Mujtaba"</span>, Amount: <span class="lit">100</span>}
+    fmt.<span class="fn">Println</span>(myOrder.<span class="fn">Summary</span>())    <span class="cm">// Order #1 by Mujtaba — $100.00</span>
+    myOrder.<span class="fn">UpdateStatus</span>(<span class="str">"paid"</span>)
+    fmt.<span class="fn">Println</span>(myOrder.Status)        <span class="cm">// paid</span>
+}</code></pre>
+        </div>
+        <div class="info-box info-tip" style="margin-top:.8rem">
+          <div class="ib-icon">💡</div>
+          <div>Rule of thumb: if <em>any</em> method on a type needs a pointer receiver, make <em>all</em> methods pointer receivers for consistency.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Constructor Pattern -->
+    <section id="constructors">
+      <div class="card">
+        <h3>🔨 Constructor Functions</h3>
+        <p style="font-size:.88rem;color:var(--muted);margin-bottom:.8rem">Go has no <code>new</code> keyword for structs. The convention is to write a factory function prefixed with <strong><code>New</code></strong>.</p>
+        <div class="code-wrap">
+          <span class="code-label">go</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><code><span class="cm">// Returns a *Order — returning pointer avoids copying
+// and allows methods with pointer receivers to work</span>
+<span class="kw">func</span> <span class="fn">NewOrder</span>(id <span class="tp">int</span>, name <span class="tp">string</span>, amount <span class="tp">float32</span>) *<span class="tp">Order</span> {
+    <span class="kw">if</span> amount &lt; <span class="lit">0</span> {
+        amount = <span class="lit">0</span>  <span class="cm">// validation logic goes here</span>
+    }
+    <span class="kw">return</span> &amp;<span class="tp">Order</span>{
+        ID:     id,
+        Name:   name,
+        Amount: amount,
+        Status: <span class="str">"pending"</span>,  <span class="cm">// sensible default</span>
+    }
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    o := <span class="fn">NewOrder</span>(<span class="lit">1</span>, <span class="str">"Mujtaba"</span>, <span class="lit">49.99</span>)
+    fmt.<span class="fn">Println</span>(o.<span class="fn">Summary</span>())
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Struct Embedding -->
+    <section id="embedding">
+      <div class="card">
+        <h3>🧩 Struct Embedding (Composition / "Inheritance")</h3>
+        <p style="font-size:.88rem;color:var(--muted);margin-bottom:.8rem">Go favors <strong>composition over inheritance</strong>. You embed one struct inside another to reuse its fields and methods.</p>
+        <div class="code-wrap">
+          <span class="code-label">go</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><code><span class="kw">type</span> <span class="tp">Customer</span> <span class="kw">struct</span> {
+    Name     <span class="tp">string</span>
+    Location <span class="tp">string</span>
+    Email    <span class="tp">string</span>
+}
+
+<span class="kw">func</span> (c <span class="tp">Customer</span>) <span class="fn">Greet</span>() <span class="tp">string</span> {
+    <span class="kw">return</span> <span class="str">"Hello, "</span> + c.Name
+}
+
+<span class="cm">// Named embedding — explicit field name</span>
+<span class="kw">type</span> <span class="tp">Order</span> <span class="kw">struct</span> {
+    ID          <span class="tp">int</span>
+    Amount      <span class="tp">float32</span>
+    Customer    <span class="tp">Customer</span>    <span class="cm">// named — access via order.Customer.Name</span>
+}
+
+<span class="cm">// Anonymous embedding — promotes fields &amp; methods</span>
+<span class="kw">type</span> <span class="tp">PremiumOrder</span> <span class="kw">struct</span> {
+    <span class="tp">Order</span>                    <span class="cm">// anonymous — fields &amp; methods promoted</span>
+    Discount <span class="tp">float32</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    o := <span class="tp">Order</span>{
+        ID:     <span class="lit">1</span>,
+        Amount: <span class="lit">99</span>,
+        Customer: <span class="tp">Customer</span>{Name: <span class="str">"Mujtaba"</span>, Location: <span class="str">"Islamabad"</span>},
+    }
+    fmt.<span class="fn">Println</span>(o.Customer.Name)    <span class="cm">// "Mujtaba"</span>
+
+    po := <span class="tp">PremiumOrder</span>{
+        Order:    o,
+        Discount: <span class="lit">10.0</span>,
+    }
+    <span class="cm">// Promoted fields — access without specifying Order</span>
+    fmt.<span class="fn">Println</span>(po.<span class="fn">Greet</span>())      <span class="cm">// promoted from Customer via Order</span>
+}</code></pre>
+        </div>
+        <div class="info-box info-note" style="margin-top:.8rem">
+          <div class="ib-icon">📌</div>
+          <div>Anonymous embedding <strong>promotes</strong> the embedded type's fields and methods to the outer struct. It's Go's mechanism for code reuse — similar to but not the same as inheritance.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interview Q&A Structs -->
+    <div class="qa-section" id="iq-structs">
+      <div class="qa-section-title">Interview Q&amp;A — Structs</div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q1. What is the difference between a value receiver and a pointer receiver?</span>
+          <span class="qa-badge easy">Easy</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          A <strong>value receiver</strong> (<code>func (o Order) ...</code>) receives a copy of the struct. Changes inside the method don't affect the caller's struct. A <strong>pointer receiver</strong> (<code>func (o *Order) ...</code>) receives a pointer to the original struct, so modifications persist after the method returns. Use pointer receivers when: you need to mutate state, the struct is large (avoid copying), or you need to handle nil.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q2. Can Go structs implement interfaces?</span>
+          <span class="qa-badge easy">Easy</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          Yes. In Go, interface implementation is <strong>implicit</strong>. A struct implements an interface as long as it has all the methods the interface requires — no <code>implements</code> keyword is needed. This is called <em>duck typing</em> or structural subtyping. The compiler checks at compile time whether the struct satisfies the interface.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q3. What is the difference between struct embedding and a regular field?</span>
+          <span class="qa-badge medium">Medium</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          A <strong>named field</strong> like <code>Customer Customer</code> requires you to access it via <code>order.Customer.Name</code>. An <strong>anonymous/embedded</strong> field like just <code>Customer</code> (no field name) <em>promotes</em> all of Customer's fields and methods to the outer struct — so you can write <code>order.Name</code> directly. Embedding also means the outer struct <em>satisfies</em> any interface that the embedded struct satisfies, because the promoted methods count.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q4. Are structs comparable in Go?</span>
+          <span class="qa-badge medium">Medium</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          A struct is comparable with <code>==</code> and <code>!=</code> <strong>only</strong> if all its fields are comparable types (int, string, bool, pointers, etc.). Structs containing slices, maps, or functions are <strong>not</strong> comparable. Two struct values are equal if all their corresponding fields are equal. This makes structs usable as map keys when comparable.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q5. What is the "functional options" pattern for constructors?</span>
+          <span class="qa-badge hard">Hard</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          Instead of a constructor with many parameters, you pass <strong>option functions</strong>:
+          <br/><br/>
+          <code>type Option func(*Order)</code><br/>
+          <code>func WithStatus(s string) Option { return func(o *Order){ o.Status = s } }</code><br/>
+          <code>o := NewOrder(1, "Ali", 50, WithStatus("paid"), WithDiscount(10))</code>
+          <br/><br/>
+          This avoids long parameter lists, allows optional config, and keeps the API backward-compatible as you add new options without breaking existing callers.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ INTERFACES ════════════════════════ -->
+  <section class="topic" id="interfaces">
+    <div class="topic-header">
+      <div class="topic-icon icon-rose">🔗</div>
+      <h2>Interfaces</h2>
+    </div>
+
+    <p>An interface defines a <strong>set of method signatures</strong>. Any type that implements all those methods <em>automatically</em> satisfies the interface — no explicit declaration needed. This gives Go powerful polymorphism without inheritance.</p>
+
+    <div class="info-box info-tip">
+      <div class="ib-icon">💡</div>
+      <div><strong>Why interfaces?</strong> They let you write code that works with any type satisfying a contract, without knowing the concrete type. This is the Open/Closed Principle — extend behavior by adding new types, not by modifying existing code.</div>
+    </div>
+
+    <!-- Declaring interface -->
+    <div class="card">
+      <h3>Declaring an Interface</h3>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="cm">// Convention: interface names often end with -er</span>
+<span class="kw">type</span> <span class="tp">Paymenter</span> <span class="kw">interface</span> {
+    <span class="fn">Pay</span>(amount <span class="tp">float32</span>) (<span class="tp">bool</span>, <span class="tp">error</span>)
+    <span class="fn">Refund</span>(amount <span class="tp">float32</span>) <span class="tp">bool</span>
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Full payment gateway example -->
+    <div class="card">
+      <h3>🌟 Full Payment Gateway Example (Open/Closed Principle)</h3>
+      <p style="font-size:.88rem;color:var(--muted);margin-bottom:.8rem">This is the classic example from your notes, expanded. Adding a new payment provider (PayPal, Crypto) requires <strong>zero changes</strong> to existing code.</p>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="cm">// ── Interface (the contract) ──────────────────────</span>
+<span class="kw">type</span> <span class="tp">Paymenter</span> <span class="kw">interface</span> {
+    <span class="fn">Pay</span>(amount <span class="tp">float32</span>) (<span class="tp">bool</span>, <span class="tp">error</span>)
+    <span class="fn">Refund</span>(amount <span class="tp">float32</span>) <span class="tp">bool</span>
+    <span class="fn">Name</span>() <span class="tp">string</span>
+}
+
+<span class="cm">// ── Stripe implementation ─────────────────────────</span>
+<span class="kw">type</span> <span class="tp">Stripe</span> <span class="kw">struct</span>{ APIKey <span class="tp">string</span> }
+
+<span class="kw">func</span> (s <span class="tp">Stripe</span>) <span class="fn">Pay</span>(amount <span class="tp">float32</span>) (<span class="tp">bool</span>, <span class="tp">error</span>) {
+    fmt.<span class="fn">Printf</span>(<span class="str">"[Stripe] Charging $%.2f\n"</span>, amount)
+    <span class="kw">return</span> <span class="tp">true</span>, <span class="tp">nil</span>
+}
+<span class="kw">func</span> (s <span class="tp">Stripe</span>) <span class="fn">Refund</span>(amount <span class="tp">float32</span>) <span class="tp">bool</span> {
+    fmt.<span class="fn">Printf</span>(<span class="str">"[Stripe] Refunding $%.2f\n"</span>, amount)
+    <span class="kw">return</span> <span class="tp">true</span>
+}
+<span class="kw">func</span> (s <span class="tp">Stripe</span>) <span class="fn">Name</span>() <span class="tp">string</span> { <span class="kw">return</span> <span class="str">"Stripe"</span> }
+
+<span class="cm">// ── PayPal implementation ─────────────────────────</span>
+<span class="kw">type</span> <span class="tp">PayPal</span> <span class="kw">struct</span>{ ClientID <span class="tp">string</span> }
+
+<span class="kw">func</span> (p <span class="tp">PayPal</span>) <span class="fn">Pay</span>(amount <span class="tp">float32</span>) (<span class="tp">bool</span>, <span class="tp">error</span>) {
+    fmt.<span class="fn">Printf</span>(<span class="str">"[PayPal] Processing $%.2f\n"</span>, amount)
+    <span class="kw">return</span> <span class="tp">true</span>, <span class="tp">nil</span>
+}
+<span class="kw">func</span> (p <span class="tp">PayPal</span>) <span class="fn">Refund</span>(amount <span class="tp">float32</span>) <span class="tp">bool</span> { <span class="kw">return</span> <span class="tp">true</span> }
+<span class="kw">func</span> (p <span class="tp">PayPal</span>) <span class="fn">Name</span>() <span class="tp">string</span>            { <span class="kw">return</span> <span class="str">"PayPal"</span> }
+
+<span class="cm">// ── Payment service uses the interface ────────────</span>
+<span class="kw">type</span> <span class="tp">PaymentService</span> <span class="kw">struct</span> {
+    Gateway <span class="tp">Paymenter</span>    <span class="cm">// depends on abstraction, not concrete type</span>
+}
+
+<span class="kw">func</span> (ps <span class="tp">PaymentService</span>) <span class="fn">Checkout</span>(amount <span class="tp">float32</span>) {
+    ok, err := ps.Gateway.<span class="fn">Pay</span>(amount)
+    <span class="kw">if</span> err != <span class="tp">nil</span> || !ok {
+        fmt.<span class="fn">Println</span>(<span class="str">"Payment failed!"</span>)
+        <span class="kw">return</span>
+    }
+    fmt.<span class="fn">Printf</span>(<span class="str">"✅ Paid via %s\n"</span>, ps.Gateway.<span class="fn">Name</span>())
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    stripe := <span class="tp">Stripe</span>{APIKey: <span class="str">"sk_live_..."</span>}
+    svc := <span class="tp">PaymentService</span>{Gateway: stripe}
+    svc.<span class="fn">Checkout</span>(<span class="lit">99.99</span>)
+
+    <span class="cm">// Swap to PayPal with ONE line change — no other code changes</span>
+    svc.Gateway = <span class="tp">PayPal</span>{ClientID: <span class="str">"paypal_id"</span>}
+    svc.<span class="fn">Checkout</span>(<span class="lit">49.99</span>)
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Empty interface -->
+    <div class="card">
+      <h3>The Empty Interface — <code>any</code></h3>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="cm">// interface{} (or "any" in Go 1.18+) has no methods
+// so every type satisfies it automatically</span>
+<span class="kw">func</span> <span class="fn">Print</span>(v <span class="kw">any</span>) {
+    fmt.<span class="fn">Println</span>(v)
+}
+
+<span class="fn">Print</span>(<span class="lit">42</span>)
+<span class="fn">Print</span>(<span class="str">"hello"</span>)
+<span class="fn">Print</span>([]<span class="tp">int</span>{<span class="lit">1</span>,<span class="lit">2</span>,<span class="lit">3</span>})</code></pre>
+      </div>
+    </div>
+
+    <!-- Type assertions -->
+    <div class="card">
+      <h3>Type Assertions &amp; Type Switches</h3>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="kw">func</span> <span class="fn">describe</span>(p <span class="tp">Paymenter</span>) {
+    <span class="cm">// Type assertion — extract concrete type</span>
+    <span class="kw">if</span> s, ok := p.(<span class="tp">Stripe</span>); ok {
+        fmt.<span class="fn">Println</span>(<span class="str">"This is a Stripe with key:"</span>, s.APIKey)
+    }
+
+    <span class="cm">// Type switch — cleaner for multiple types</span>
+    <span class="kw">switch</span> v := p.(<span class="kw">type</span>) {
+    <span class="kw">case</span> <span class="tp">Stripe</span>:
+        fmt.<span class="fn">Println</span>(<span class="str">"Stripe:"</span>, v.APIKey)
+    <span class="kw">case</span> <span class="tp">PayPal</span>:
+        fmt.<span class="fn">Println</span>(<span class="str">"PayPal:"</span>, v.ClientID)
+    <span class="kw">default</span>:
+        fmt.<span class="fn">Println</span>(<span class="str">"Unknown gateway"</span>)
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Interface composition -->
+    <div class="card">
+      <h3>Interface Composition</h3>
+      <p style="font-size:.88rem;color:var(--muted);margin-bottom:.8rem">Interfaces can embed other interfaces, creating composite contracts.</p>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="kw">type</span> <span class="tp">Payer</span> <span class="kw">interface</span> {
+    <span class="fn">Pay</span>(amount <span class="tp">float32</span>) <span class="tp">bool</span>
+}
+
+<span class="kw">type</span> <span class="tp">Refunder</span> <span class="kw">interface</span> {
+    <span class="fn">Refund</span>(amount <span class="tp">float32</span>) <span class="tp">bool</span>
+}
+
+<span class="cm">// Composite interface embeds both</span>
+<span class="kw">type</span> <span class="tp">PaymentGateway</span> <span class="kw">interface</span> {
+    <span class="tp">Payer</span>
+    <span class="tp">Refunder</span>
+    <span class="fn">Name</span>() <span class="tp">string</span>
+}
+
+<span class="cm">// The Go standard library uses this extensively:
+// io.ReadWriter embeds io.Reader + io.Writer</span></code></pre>
+      </div>
+    </div>
+
+    <!-- When to use interfaces -->
+    <div class="card" style="border-color:rgba(0,212,230,.25)">
+      <h3>🎯 When Should You Use an Interface?</h3>
+      <ul style="font-size:.88rem;color:var(--muted);padding-left:1.2rem;margin-top:.5rem">
+        <li style="margin-bottom:.4rem">You have <strong>2+ concrete types</strong> that need to be used interchangeably</li>
+        <li style="margin-bottom:.4rem">You want to write code that works with <strong>future types</strong> not yet written</li>
+        <li style="margin-bottom:.4rem">You want to write <strong>testable code</strong> — inject a mock instead of a real dependency</li>
+        <li style="margin-bottom:.4rem">You want to follow <strong>Open/Closed Principle</strong> (add features by adding types, not changing existing code)</li>
+        <li style="margin-bottom:.4rem">You're building a library and want users to be able to provide their own implementations</li>
+      </ul>
+      <div class="info-box info-warn" style="margin-top:.8rem">
+        <div class="ib-icon">⚠️</div>
+        <div><strong>Don't over-interface.</strong> Go's advice: accept interfaces, return concrete types. Only abstract when you have a real need — premature abstraction adds complexity.</div>
+      </div>
+    </div>
+
+    <!-- Mocking with interfaces -->
+    <div class="card">
+      <h3>🧪 Mocking for Unit Tests</h3>
+      <p style="font-size:.88rem;color:var(--muted);margin-bottom:.8rem">One of the biggest real-world uses of interfaces — swap the real gateway for a mock in tests.</p>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="cm">// mock_payment.go (test file)</span>
+<span class="kw">type</span> <span class="tp">MockPayment</span> <span class="kw">struct</span> {
+    ShouldFail <span class="tp">bool</span>
+    CallCount  <span class="tp">int</span>
+}
+
+<span class="kw">func</span> (m *<span class="tp">MockPayment</span>) <span class="fn">Pay</span>(amount <span class="tp">float32</span>) (<span class="tp">bool</span>, <span class="tp">error</span>) {
+    m.CallCount++
+    <span class="kw">if</span> m.ShouldFail { <span class="kw">return</span> <span class="tp">false</span>, fmt.<span class="fn">Errorf</span>(<span class="str">"mock failure"</span>) }
+    <span class="kw">return</span> <span class="tp">true</span>, <span class="tp">nil</span>
+}
+<span class="kw">func</span> (m *<span class="tp">MockPayment</span>) <span class="fn">Refund</span>(amount <span class="tp">float32</span>) <span class="tp">bool</span> { <span class="kw">return</span> <span class="tp">true</span> }
+<span class="kw">func</span> (m *<span class="tp">MockPayment</span>) <span class="fn">Name</span>() <span class="tp">string</span>            { <span class="kw">return</span> <span class="str">"Mock"</span> }
+
+<span class="kw">func</span> <span class="fn">TestCheckout</span>(t *testing.T) {
+    mock := &amp;<span class="tp">MockPayment</span>{}
+    svc  := <span class="tp">PaymentService</span>{Gateway: mock}
+    svc.<span class="fn">Checkout</span>(<span class="lit">100</span>)
+    <span class="kw">if</span> mock.CallCount != <span class="lit">1</span> {
+        t.<span class="fn">Errorf</span>(<span class="str">"expected 1 call, got %d"</span>, mock.CallCount)
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- io.Writer example -->
+    <div class="card">
+      <h3>📘 Real-world Interface: <code>io.Writer</code></h3>
+      <p style="font-size:.88rem;color:var(--muted);margin-bottom:.8rem">The standard library's most famous interface — just one method.</p>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="cm">// This is literally the io.Writer interface definition in stdlib:</span>
+<span class="kw">type</span> <span class="tp">Writer</span> <span class="kw">interface</span> {
+    <span class="fn">Write</span>(p []<span class="tp">byte</span>) (n <span class="tp">int</span>, err <span class="tp">error</span>)
+}
+
+<span class="cm">// os.File, bytes.Buffer, net.Conn, http.ResponseWriter, ...
+// ALL implement io.Writer. Your logger function works with all of them:</span>
+
+<span class="kw">func</span> <span class="fn">Log</span>(w io.<span class="tp">Writer</span>, msg <span class="tp">string</span>) {
+    fmt.<span class="fn">Fprintf</span>(w, <span class="str">"[LOG] %s\n"</span>, msg)
+}
+
+<span class="fn">Log</span>(os.Stdout, <span class="str">"hello"</span>)        <span class="cm">// prints to terminal</span>
+<span class="fn">Log</span>(someFile, <span class="str">"hello"</span>)       <span class="cm">// writes to file</span>
+<span class="fn">Log</span>(&amp;bytes.Buffer{}, <span class="str">"hi"</span>)   <span class="cm">// writes to memory buffer</span></code></pre>
+      </div>
+    </div>
+
+    <!-- Interface internals -->
+    <div class="card" style="border-color:rgba(167,139,250,.25)">
+      <h3>🔬 How Interfaces Work Internally</h3>
+      <p style="font-size:.88rem;color:var(--muted)">Internally, an interface value is a pair of two pointers: <strong>(type, value)</strong>.</p>
+      <div class="code-wrap">
+        <span class="code-label">go</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code><span class="kw">var</span> p <span class="tp">Paymenter</span>          <span class="cm">// nil interface: (type=nil, value=nil)</span>
+
+p = <span class="tp">Stripe</span>{}            <span class="cm">// (type=*Stripe, value=0xc000...)</span>
+p = <span class="tp">PayPal</span>{}            <span class="cm">// (type=*PayPal, value=0xc000...)</span>
+
+<span class="cm">// ⚠️ Tricky: a nil concrete pointer inside an interface is NOT nil</span>
+<span class="kw">var</span> s *<span class="tp">Stripe</span> = <span class="tp">nil</span>
+<span class="kw">var</span> pi <span class="tp">Paymenter</span> = s   <span class="cm">// (type=*Stripe, value=nil)</span>
+fmt.<span class="fn">Println</span>(pi == <span class="tp">nil</span>) <span class="cm">// false! The type part is set</span></code></pre>
+      </div>
+      <div class="info-box info-warn" style="margin-top:.8rem">
+        <div class="ib-icon">⚠️</div>
+        <div>This "nil interface vs nil pointer in interface" distinction is a common <strong>Go gotcha</strong> in interviews and production bugs.</div>
+      </div>
+    </div>
+
+    <!-- Interview Q&A Interfaces -->
+    <div class="qa-section" id="iq-interfaces">
+      <div class="qa-section-title">Interview Q&amp;A — Interfaces</div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q1. How does Go implement interfaces differently from Java or C#?</span>
+          <span class="qa-badge easy">Easy</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          In Java/C#, a class must <strong>explicitly declare</strong> that it implements an interface using <code>implements</code> or <code>:</code>. In Go, implementation is <strong>implicit</strong> — if your type has all the methods the interface requires, it automatically satisfies it, with no declaration needed. This is called <em>structural typing</em>. The benefit is that you can define an interface for a type you don't own, or define the interface after the fact, without touching the original type.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q2. What is the empty interface and when should you use it?</span>
+          <span class="qa-badge easy">Easy</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          <code>interface{}</code> (aliased as <code>any</code> in Go 1.18+) specifies zero methods, so <em>every</em> type satisfies it. It's Go's equivalent of <code>Object</code> in Java. Use it when you genuinely don't know or don't care about the type — e.g., generic logging, JSON deserialization into <code>map[string]any</code>, or function parameters that must accept multiple unrelated types. Avoid overusing it — it bypasses compile-time type checking. In Go 1.18+, prefer <strong>generics</strong> (<code>[T any]</code>) for type-safe containers.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q3. What is a type assertion and what happens if it fails?</span>
+          <span class="qa-badge medium">Medium</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          A type assertion extracts the concrete type from an interface: <code>v, ok := i.(T)</code>. If the concrete type is <code>T</code>, <code>ok</code> is <code>true</code> and <code>v</code> holds the value. If not, <code>ok</code> is <code>false</code> and <code>v</code> is the zero value of <code>T</code> — no panic. If you use the single-return form <code>v := i.(T)</code> and the assertion fails, Go <strong>panics</strong>. Always use the two-return form when you're not certain of the type.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q4. Can an interface be nil in Go? What are the two ways it can be nil?</span>
+          <span class="qa-badge hard">Hard</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          An interface value is internally a pair <code>(type, value)</code>. There are two nil scenarios:
+          <ol style="margin:.5rem 0 0 1rem">
+            <li><strong>Nil interface</strong>: both type and value are nil. A variable declared as an interface but never assigned: <code>var p Paymenter</code>. <code>p == nil</code> is <code>true</code>.</li>
+            <li><strong>Interface holding a nil pointer</strong>: type is set, value is nil. E.g., <code>var s *Stripe; var p Paymenter = s</code>. Now <code>p == nil</code> is <strong>false</strong>, even though <code>s</code> is nil! Calling a method through <code>p</code> will reach Stripe's method, but the receiver will be nil.</li>
+          </ol>
+          This is a notorious Go gotcha. Return typed nils (<code>return nil, nil</code>) not typed-nil-as-interface to avoid it.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q5. What design principles do interfaces enable in Go?</span>
+          <span class="qa-badge medium">Medium</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          Interfaces support several important principles:
+          <ul style="margin:.5rem 0 0 1rem">
+            <li><strong>Open/Closed Principle (OCP)</strong> — open for extension (add new types), closed for modification</li>
+            <li><strong>Dependency Inversion Principle (DIP)</strong> — high-level code depends on abstractions, not concrete types</li>
+            <li><strong>Liskov Substitution Principle (LSP)</strong> — any type satisfying an interface can replace another</li>
+            <li><strong>Testability</strong> — inject mocks or stubs implementing the same interface</li>
+            <li><strong>Decoupling</strong> — components communicate through contracts, not implementation details</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q6. What is interface composition and give a stdlib example?</span>
+          <span class="qa-badge medium">Medium</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          Interface composition means embedding one interface inside another to create a new, broader interface. The embedded interface's methods are promoted. Example from the Go standard library:
+          <br/><br/>
+          <code>type ReadWriter interface { Reader; Writer }</code>
+          <br/><br/>
+          Where <code>Reader</code> has <code>Read()</code> and <code>Writer</code> has <code>Write()</code>. <code>ReadWriter</code> requires both. Other examples: <code>io.ReadWriteCloser</code>, <code>io.ReadSeeker</code>. This lets you be precise about what a function actually needs — accept <code>io.Reader</code> not <code>io.ReadWriter</code> if you only read.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="qa-q-text">Q7. What is the "accept interfaces, return concrete types" principle?</span>
+          <span class="qa-badge hard">Hard</span>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-a">
+          This is idiomatic Go advice coined by Jack Lindamood:
+          <ul style="margin:.5rem 0 0 1rem">
+            <li><strong>Accept interfaces</strong> in function parameters — makes your function flexible and testable with any conforming type</li>
+            <li><strong>Return concrete types</strong> from functions — gives callers the full API surface without forcing them to type-assert, and avoids leaking abstraction</li>
+          </ul>
+          The exception is when you're designing a library API where you want to hide implementation details or allow multiple return types — then returning an interface is appropriate. But for internal code, returning concrete types is usually better.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ QUICK REFERENCE ════════════════════ -->
+  <section class="topic" id="quickref">
+    <div class="topic-header">
+      <div class="topic-icon icon-green">⚡</div>
+      <h2>Quick Reference Cheatsheet</h2>
+    </div>
+    <table>
+      <tr><th>Concept</th><th>Syntax</th><th>Purpose</th></tr>
+      <tr><td>Get address</td><td><code>&amp;x</code></td><td>Returns memory address of x</td></tr>
+      <tr><td>Pointer type</td><td><code>*int</code></td><td>Pointer to an int</td></tr>
+      <tr><td>Dereference</td><td><code>*p</code></td><td>Read/write the value at pointer p</td></tr>
+      <tr><td>Value receiver</td><td><code>func (s MyStruct) M()</code></td><td>Works on copy, read-only</td></tr>
+      <tr><td>Pointer receiver</td><td><code>func (s *MyStruct) M()</code></td><td>Mutates the original</td></tr>
+      <tr><td>Constructor</td><td><code>func NewFoo(...) *Foo</code></td><td>Factory function pattern</td></tr>
+      <tr><td>Anonymous embed</td><td><code>type A struct { B }</code></td><td>Promotes B's fields/methods to A</td></tr>
+      <tr><td>Interface</td><td><code>type I interface { M() }</code></td><td>Contract any type can satisfy</td></tr>
+      <tr><td>Type assertion</td><td><code>v, ok := i.(T)</code></td><td>Extract concrete type from interface</td></tr>
+      <tr><td>Type switch</td><td><code>switch v := i.(type)</code></td><td>Handle multiple concrete types</td></tr>
+      <tr><td>Empty interface</td><td><code>any</code> / <code>interface{}</code></td><td>Accepts any type</td></tr>
+    </table>
+  </section>
+
+</main>
+</div>
+
+<script>
+// ── Accordion toggle ──────────────────────────
+function toggle(el) {
+  const item = el.closest('.qa-item');
+  const isOpen = item.classList.contains('open');
+  // close all in same section
+  item.closest('.qa-section').querySelectorAll('.qa-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// ── Copy code ─────────────────────────────────
+function copyCode(btn) {
+  const code = btn.closest('.code-wrap').querySelector('pre').innerText;
+  navigator.clipboard.writeText(code).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = 'var(--green)';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1800);
+  });
+}
+
+// ── Reading progress bar ──────────────────────
+const prog = document.getElementById('top-progress');
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  prog.style.transform = `scaleX(${scrolled / total})`;
+});
+
+// ── Active sidebar link ───────────────────────
+const sections = document.querySelectorAll('[id]');
+const links = document.querySelectorAll('nav a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`nav a[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, {threshold: 0.3});
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

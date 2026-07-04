@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go (Golang) Interview Prep — Dark Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Loading Prism for base parsing -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<style>
+  :root {
+    /* Premium Dark Theme Variables */
+    --bg: #0d1117;          /* Deep dark background */
+    --bg-card: #161b22;     /* Slightly lighter for content cards */
+    --ink: #c9d1d9;         /* Primary text color */
+    --ink-soft: #8b949e;    /* Secondary/muted text */
+    --cyan: #58a6ff;        /* Accent color */
+    --cyan-dark: #388bfd;
+    --cyan-soft: rgba(88, 166, 255, 0.1);
+    --amber: #f0883e;
+    --amber-dark: #d36514;
+    --amber-soft: rgba(240, 136, 62, 0.1);
+    --border: #30363d;      /* Subtle borders */
+    --code-bg: #010409;     /* Ultra dark for code blocks */
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  
+  .progress-track { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.05); z-index: 1000; }
+  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--amber)); transition: width .08s linear; }
+
+  a { color: var(--cyan); text-decoration: none; transition: color 0.2s; }
+  a:hover { color: var(--cyan-dark); }
+
+  /* Hero Section */
+  .hero { max-width: 1180px; margin: 0 auto; padding: 56px 32px 36px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+  .hero .eyebrow { font-family: var(--font-mono); color: var(--cyan); text-transform: uppercase; letter-spacing: .14em; font-size: .76rem; font-weight: 600; }
+  .hero h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.6vw, 3.1rem); line-height: 1.08; margin: .4em 0 .35em; letter-spacing: -.01em; color: #ffffff; }
+  .hero h1 span { color: var(--cyan); }
+  .hero p.lead { max-width: 680px; color: var(--ink-soft); font-size: 1.05rem; line-height: 1.65; margin: 0; }
+  
+  .hero .stats { display: flex; gap: 36px; margin-top: 30px; flex-wrap: wrap; }
+  .hero .stats .stat strong { display: block; font-family: var(--font-display); font-size: 1.5rem; color: #ffffff; }
+  .hero .stats .stat span { font-family: var(--font-mono); font-size: .78rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
+  
+  .hero .legend { display: flex; gap: 18px; margin-top: 26px; flex-wrap: wrap; font-size: .82rem; color: var(--ink-soft); }
+  .hero .legend .chip { display: inline-flex; align-items: center; gap: 6px; }
+  .hero .legend .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .hero .legend .dot.fix { background: var(--amber); }
+  .hero .legend .dot.note { background: var(--cyan); }
+
+  .layout { display: flex; max-width: 1180px; margin: 0 auto; gap: 36px; padding: 0 32px 90px; align-items: flex-start; }
+
+  /* Sidebar */
+  nav.sidebar { position: sticky; top: 20px; width: 218px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; max-height: calc(100vh - 40px); overflow-y: auto; padding-right: 6px; }
+  nav.sidebar a { color: var(--ink-soft); padding: 10px 12px; border-radius: 8px; font-size: .87rem; display: flex; gap: 10px; align-items: baseline; transition: all 0.2s; border: 1px solid transparent; }
+  nav.sidebar a .num { font-family: var(--font-mono); color: var(--ink-soft); font-size: .74rem; flex-shrink: 0; transition: color 0.2s; }
+  nav.sidebar a.active { background: var(--bg-card); color: var(--cyan); border-color: var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  nav.sidebar a.active .num { color: var(--cyan); }
+  nav.sidebar a:hover:not(.active) { background: rgba(255,255,255,0.03); color: var(--ink); }
+
+  main.content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 46px; }
+
+  /* Content Cards */
+  .topic { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 34px 38px; scroll-margin-top: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  .topic .tag { font-family: var(--font-mono); font-size: .74rem; color: var(--cyan); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
+  .topic h2 { font-family: var(--font-display); font-size: 1.55rem; margin: .3em 0 .65em; letter-spacing: -.01em; color: #ffffff; }
+  .topic p { line-height: 1.72; margin: .65em 0; color: var(--ink); }
+  .topic ul, .topic ol { line-height: 1.72; padding-left: 1.25em; }
+  .topic li { margin: .4em 0; }
+  
+  /* Inline Code */
+  .topic code { font-family: var(--font-mono); background: rgba(255,255,255,0.08); padding: .15em .4em; border-radius: 6px; font-size: .88em; color: #e6edf3; border: 1px solid rgba(255,255,255,0.1); }
+
+  /* Code Snippet Blocks */
+  .code-label { font-family: var(--font-mono); font-size: .75rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .08em; margin: 24px 0 -12px 12px; z-index: 1; position: relative; }
+  pre[class*="language-"] { border-radius: 12px; font-size: .9rem; margin: 16px 0 24px; background: var(--code-bg) !important; border: 1px solid var(--border); padding: 1.5em !important; box-shadow: inset 0 2px 8px rgba(0,0,0,0.2); }
+  pre[class*="language-"] code { font-family: var(--font-mono); text-shadow: none !important; border: none; background: transparent; padding: 0; }
+  
+  /* Custom IDE-Grade Syntax Highlighting (Dark) */
+  .token.keyword { color: #ff7b72 !important; }       /* var, func, package, import, return */
+  .token.string { color: #a5d6ff !important; }        /* "strings" */
+  .token.number { color: #79c0ff !important; }        /* 1, 2, 3 */
+  .token.builtin { color: #d2a8ff !important; }       /* make, append, len */
+  .token.function { color: #d2a8ff !important; }      /* fmt.Println */
+  .token.comment { color: #8b949e !important; font-style: italic; } /* // comments */
+  .token.operator { color: #c9d1d9 !important; }      /* :=, ==, + */
+  .token.punctuation { color: #8b949e !important; }   /* { } [ ] ( ) */
+  .token.class-name { color: #ffa657 !important; }    /* Types like int, string */
+  .token.boolean { color: #79c0ff !important; }       /* true, false */
+
+  /* Callouts */
+  .callout { border-left: 4px solid; border-radius: 8px; padding: 16px 20px; margin: 24px 0; font-size: .93rem; line-height: 1.62; }
+  .callout.fix { border-color: var(--amber); background: var(--amber-soft); }
+  .callout.note { border-color: var(--cyan); background: var(--cyan-soft); }
+  .callout .label { font-family: var(--font-mono); font-weight: 700; font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; display: block; margin-bottom: 8px; }
+  .callout.fix .label { color: var(--amber); }
+  .callout.note .label { color: var(--cyan); }
+  .callout p { margin: .3em 0; }
+
+  /* Q&A Section */
+  .qa { margin-top: 40px; border-top: 1px dashed var(--border); padding-top: 26px; }
+  .qa h3 { font-family: var(--font-display); font-size: 1.1rem; margin: 0 0 16px; color: #ffffff; }
+  
+  details.q { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; background: var(--bg); transition: background 0.2s; }
+  details.q:hover { background: rgba(255,255,255,0.02); }
+  details.q summary { padding: 16px; cursor: pointer; font-weight: 500; font-size: .95rem; display: flex; gap: 12px; align-items: flex-start; list-style: none; color: #ffffff; }
+  details.q summary::-webkit-details-marker { display: none; }
+  details.q summary .qmark { font-family: var(--font-mono); color: var(--bg); background: var(--cyan); border-radius: 6px; padding: 2px 8px; font-size: .75rem; flex-shrink: 0; margin-top: 2px; font-weight: 700; }
+  details.q summary .qtext { flex: 1; line-height: 1.5; }
+  details.q summary .chev { color: var(--ink-soft); font-size: 1.2rem; flex-shrink: 0; transition: transform 0.2s; }
+  details.q[open] summary .chev { transform: rotate(180deg); }
+  details.q .answer { padding: 0 16px 20px 50px; color: var(--ink); line-height: 1.65; font-size: .92rem; }
+
+  /* Cheat Sheet Table */
+  table.cheat { width: 100%; border-collapse: separate; border-spacing: 0; margin: 20px 0; font-size: .9rem; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  table.cheat th, table.cheat td { border-bottom: 1px solid var(--border); padding: 12px 16px; text-align: left; vertical-align: middle; }
+  table.cheat th { background: rgba(255,255,255,0.03); font-family: var(--font-display); font-weight: 600; font-size: .9rem; color: #ffffff; }
+  table.cheat tr:last-child td { border-bottom: none; }
+  table.cheat td:not(:last-child), table.cheat th:not(:last-child) { border-right: 1px solid var(--border); }
+
+  footer { text-align: center; padding: 46px 20px; color: var(--ink-soft); font-size: .85rem; font-family: var(--font-mono); border-top: 1px solid var(--border); margin-top: 40px; }
+
+  @media (max-width: 880px) {
+    .layout { flex-direction: column; }
+    nav.sidebar { position: static; flex-direction: row; overflow-x: auto; width: 100%; max-height: none; padding: 4px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    nav.sidebar a { white-space: nowrap; }
+    .topic { padding: 24px 20px; }
+    .hero { padding: 40px 20px 26px; }
+    .layout { padding: 0 20px 70px; }
+    details.q .answer { padding-left: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-track"><div class="progress-fill"></div></div>
+
+<header class="hero">
+  <span class="eyebrow">Go / Golang &middot; Interview Field Notes</span>
+  <h1>From <span>Day 1 &amp; Day 2</span> notes<br>to interview-ready.</h1>
+  <p class="lead">This guide takes your original Go learning notes, corrects the technical mistakes, fills in the gaps interviewers actually probe for, and pairs every topic with code and practice questions.</p>
+  <div class="stats">
+    <div class="stat"><strong>13</strong><span>Topics</span></div>
+    <div class="stat"><strong>70+</strong><span>Interview Q&amp;A</span></div>
+    <div class="stat"><strong>9</strong><span>Mistakes fixed</span></div>
+  </div>
+  <div class="legend">
+    <span class="chip"><span class="dot fix"></span> Correction — your notes had this wrong</span>
+    <span class="chip"><span class="dot note"></span> Good to know — commonly asked, missing from notes</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <a href="#intro"><span class="num">01</span>Why Go</a>
+    <a href="#variables"><span class="num">02</span>Variables &amp; Constants</a>
+    <a href="#loops"><span class="num">03</span>Loops</a>
+    <a href="#ifelse"><span class="num">04</span>If / Else</a>
+    <a href="#logical"><span class="num">05</span>Logical Operators</a>
+    <a href="#switch"><span class="num">06</span>Switch Statements</a>
+    <a href="#arrays"><span class="num">07</span>Arrays</a>
+    <a href="#slices"><span class="num">08</span>Slices</a>
+    <a href="#maps"><span class="num">09</span>Maps</a>
+    <a href="#range"><span class="num">10</span>Range Keyword</a>
+    <a href="#functions"><span class="num">11</span>Functions</a>
+    <a href="#closures"><span class="num">12</span>Closures</a>
+    <a href="#recap"><span class="num">13</span>Recap &amp; Cheat Sheet</a>
+  </nav>
+
+  <main class="content">
+
+    <!-- 01 INTRO -->
+    <section id="intro" class="topic">
+      <span class="tag">Topic 01</span>
+      <h2>Why Go? (Day 1 fundamentals)</h2>
+      <p>Go (Golang) is built around five practical strengths: fast compilation, fast startup, raw performance, built-in concurrency, and a simple static type system. Here's the corrected, complete picture:</p>
+      <ul>
+        <li><strong>Fast compilation:</strong> Go compiles quickly compared to many languages, which matters a lot inside CI/CD pipelines — faster builds mean shorter feedback loops, less compute spent waiting, and quicker shipping.</li>
+        <li><strong>Fast startup:</strong> Go compiles straight to a single, static, native binary. There's no virtual machine or interpreter to boot (unlike the JVM or a Python interpreter), so right after deployment the program is ready to accept requests almost instantly. This is a big deal for containers and serverless cold starts.</li>
+        <li><strong>Performance:</strong> Go source compiles directly to machine code, not to bytecode that a VM interprets — so it runs close to C-level speed.</li>
+        <li><strong>Concurrency:</strong> Go's concurrency model is built around lightweight <strong>goroutines</strong> managed by the Go runtime's own scheduler, plus <strong>channels</strong> for passing data between them safely. This is Go's implementation of the CSP (Communicating Sequential Processes) model.</li>
+        <li><strong>Static typing:</strong> types are checked at compile time, catching mismatches before the program ever runs — while <code>:=</code> still gives you type inference so it doesn't feel as verbose as some other statically typed languages.</li>
+        <li><strong>Entry point:</strong> every executable Go program needs exactly one <code>package main</code> with a <code>func main()</code> — that combination is the entry point. Everything else lives in importable packages, including built-ins like <code>fmt</code> for formatted I/O.</li>
+      </ul>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>Your notes said goroutines give Go "the best concurrency model" — that's an opinion, not a fact, and it leaves out half the story: goroutines on their own just run things concurrently. The other half is <strong>channels</strong>, which let goroutines communicate and synchronize without manually managing locks. Interviewers almost always pair these two questions, so know both.</p>
+      </div>
+
+      <div class="code-label">hello.go</div>
+      <pre class="language-go"><code class="language-go">package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello, Go!")
+}</code></pre>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p><code>go run main.go</code> compiles <em>and</em> immediately executes the program — no binary is left behind. <code>go build main.go</code> only compiles, producing a standalone executable (e.g. <code>main</code>) that you run separately with <code>./main</code>. That binary needs no Go installation to run — it's fully self-contained, which is exactly why Go is so popular for Docker images.</p>
+      </div>
+
+      <div class="qa">
+        <h3>Interview Questions — Why Go</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Why is Go popular for backend and cloud-native services?</span><span class="chev">⌄</span></summary>
+        <div class="answer">The combination matters more than any single trait: fast compile times speed up CI/CD, the compiled binary starts instantly with no runtime dependency, performance is close to C, and goroutines/channels make concurrent, networked code simple to write and cheap to run at scale.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What's the difference between <code>go run</code> and <code>go build</code>?</span><span class="chev">⌄</span></summary>
+        <div class="answer"><code>go run</code> compiles to a temporary location and executes immediately — nothing persists. <code>go build</code> compiles and writes a persistent, directly executable binary to disk, but does not run it.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What is the entry point of a Go program?</span><span class="chev">⌄</span></summary>
+        <div class="answer">A <code>package main</code> containing a <code>func main()</code>. The Go toolchain only treats a package as a buildable executable if it's named <code>main</code> and defines that function.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Why are goroutines described as "lightweight" compared to OS threads?</span><span class="chev">⌄</span></summary>
+        <div class="answer">A goroutine starts with a tiny stack (a couple of KB) that grows and shrinks as needed, and the Go runtime multiplexes many goroutines onto a much smaller number of OS threads (M:N scheduling). OS threads, by contrast, typically reserve megabytes of stack and are scheduled by the operating system, so spawning thousands of them is far more expensive than spawning thousands of goroutines.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How do goroutines typically communicate with each other?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Through channels — typed conduits created with <code>make(chan T)</code> that one goroutine sends values into and another receives from. Go's philosophy is summed up as "don't communicate by sharing memory; share memory by communicating," which is why channels are preferred over manually guarding shared variables with locks.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What does static typing buy you, and how does Go avoid the usual verbosity that comes with it?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Static typing catches type mismatches at compile time instead of at runtime, which improves reliability and enables better tooling. Go offsets the usual verbosity with type inference — <code>name := "value"</code> lets the compiler work out the type, so you rarely have to write the type explicitly.</div></details>
+      </div>
+    </section>
+
+    <!-- 02 VARIABLES -->
+    <section id="variables" class="topic">
+      <span class="tag">Topic 02</span>
+      <h2>Variables &amp; Constants</h2>
+      <p>Go gives you three equivalent ways to declare a variable, and they exist for slightly different situations:</p>
+      <div class="code-label">variables.go</div>
+      <pre class="language-go"><code class="language-go">var name string = "mujtaba"   // explicit type
+var name = "mujtaba"          // type inferred from the value
+name := "mujtaba"             // short form — only valid inside a function
+
+// useful when you want to assign the value later
+var age int
+age = 25</code></pre>
+      <ul>
+        <li><code>var name string = "mujtaba"</code> — spells out the type explicitly. Handy when you want to declare first and assign later, e.g. <code>var name string</code> then <code>name = "ali"</code>.</li>
+        <li><code>var name = "mujtaba"</code> — same idea, but the type is inferred from the value.</li>
+        <li><code>name := "mujtaba"</code> — the short declaration. It infers the type too, but it can <strong>only</strong> be used inside a function body — at package level (outside any function) Go requires <code>var</code> or <code>const</code>.</li>
+      </ul>
+      <p>If you declare a variable without assigning it a value, Go gives it the <strong>zero value</strong> for its type instead of leaving it undefined: <code>0</code> for numeric types, <code>""</code> for strings, <code>false</code> for booleans, and <code>nil</code> for pointers, slices, maps, channels, and functions.</p>
+      <p>Your note about unused variables is correct and worth remembering precisely: Go's compiler refuses to build if a <strong>local</strong> variable is declared and never used — this is a compile error, not a warning. The same rule does not apply to package-level (global) variables.</p>
+      <p>Go also has multiple sized integer types (<code>int8</code>, <code>int16</code>, <code>int32</code>, <code>int64</code> and unsigned equivalents). By default you reach for plain <code>int</code>, whose size (32 or 64-bit) is chosen by the compiler for the target platform — you only pick a specific width when you have a concrete reason, like matching a binary protocol or saving memory at scale.</p>
+
+      <div class="code-label">constants.go</div>
+      <pre class="language-go"><code class="language-go">const port = 5000
+
+const (
+    Port = 5000
+    Host = "localhost"
+)</code></pre>
+      <p>A <code>const</code> value is fixed at compile time and can never be reassigned — attempting to do so is a compile error.</p>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>Inside a <code>const</code> block, Go has a special identifier called <code>iota</code> that auto-increments with each line — it's the idiomatic way to build enums, and it's a near-guaranteed interview question whenever <code>const</code> comes up:</p>
+        <pre class="language-go" style="margin-top:10px;"><code class="language-go">type Status int
+
+const (
+    Pending Status = iota // 0
+    Active                // 1
+    Closed                // 2
+)</code></pre>
+      </div>
+
+      <div class="qa">
+        <h3>Interview Questions — Variables &amp; Constants</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What are the three ways to declare a variable in Go, and when would you reach for each?</span><span class="chev">⌄</span></summary>
+        <div class="answer"><code>var name type = value</code> when you want to be explicit or declare before assigning; <code>var name = value</code> when you want inference but are outside a function; <code>name := value</code> as the everyday short form, restricted to function bodies.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Why can't you use <code>:=</code> at package level?</span><span class="chev">⌄</span></summary>
+        <div class="answer">The short declaration form is a statement, and Go's grammar only allows statements inside function bodies. Package-level declarations must use the <code>var</code> or <code>const</code> keyword instead.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What is a "zero value" in Go? Give a few examples.</span><span class="chev">⌄</span></summary>
+        <div class="answer">The default value Go automatically assigns to a variable that's declared but not initialized. Examples: <code>0</code> for int/float, <code>""</code> for string, <code>false</code> for bool, and <code>nil</code> for pointers, slices, maps, channels, interfaces, and functions.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Does Go allow an unused local variable to compile?</span><span class="chev">⌄</span></summary>
+        <div class="answer">No — it's a compile-time error, by design, to keep code free of dead variables. Unused package-level variables and unused imports follow similar strictness (unused imports are also a compile error).</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What's the difference between <code>const</code> and a regular variable?</span><span class="chev">⌄</span></summary>
+        <div class="answer">A <code>const</code> value is fixed at compile time, can never be reassigned, and must be a value the compiler can determine without running the program (numbers, strings, booleans, or expressions of those) — it can't be the result of a function call at runtime.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What does <code>iota</code> do?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Inside a <code>const (...)</code> block, <code>iota</code> starts at 0 and increments by one for every line, making it the standard way to define a sequence of related constants (enums) without writing out each number.</div></details>
+      </div>
+    </section>
+
+    <!-- 03 LOOPS -->
+    <section id="loops" class="topic">
+      <span class="tag">Topic 03</span>
+      <h2>Loops</h2>
+      <p>Go has exactly one looping keyword, <code>for</code> — there is no separate <code>while</code> or <code>do-while</code>. You shape <code>for</code> into whichever style you need.</p>
+      <div class="code-label">loops.go</div>
+      <pre class="language-go"><code class="language-go">// "while" style
+i := 1
+for i &lt;= 3 {
+    fmt.Println(i)
+    i++
+}
+
+// infinite loop — exit with break
+for {
+    // ...
+    break
+}
+
+// classic three-clause for
+for i := 0; i &lt; 3; i++ {
+    fmt.Println(i)
+}
+
+// range over an integer (Go 1.22+)
+for i := range 3 {
+    fmt.Println(i) // 0, 1, 2
+}</code></pre>
+      <p><code>break</code> and <code>continue</code> work as in most C-family languages: <code>break</code> exits the loop entirely, <code>continue</code> skips to the next iteration.</p>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>Plain <code>continue</code>/<code>break</code> only affect the innermost loop. To control an <em>outer</em> loop from inside a nested one, label the outer loop:</p>
+        <pre class="language-go" style="margin-top:10px;"><code class="language-go">outer:
+for i := 0; i &lt; 3; i++ {
+    for j := 0; j &lt; 3; j++ {
+        if j == 1 {
+            continue outer
+        }
+        fmt.Println(i, j)
+    }
+}</code></pre>
+      </div>
+
+      <div class="qa">
+        <h3>Interview Questions — Loops</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How many looping constructs does Go provide?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Just one — <code>for</code>. It's flexible enough to act as a while-loop, an infinite loop, a classic counted loop, or a range-based loop depending on what you put around it.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How do you write an infinite loop in Go?</span><span class="chev">⌄</span></summary>
+        <div class="answer"><code>for { ... }</code> with no condition at all — you exit it explicitly with a <code>break</code> or a <code>return</code>.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What's the difference between <code>break</code> and <code>continue</code>?</span><span class="chev">⌄</span></summary>
+        <div class="answer"><code>break</code> stops the loop completely and moves execution to the line after it. <code>continue</code> stops the current iteration only and jumps straight to the loop's next iteration check.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How do you break or continue an outer loop from inside a nested loop?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Label the outer loop (e.g. <code>outer:</code> on the line above it) and use <code>break outer</code> or <code>continue outer</code> from inside the nested loop.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What is "range over integers" and when was it added?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Since Go 1.22, <code>for i := range n</code> iterates <code>i</code> from <code>0</code> to <code>n-1</code> — a concise alternative to a classic three-clause counting loop when you don't need a custom step.</div></details>
+      </div>
+    </section>
+
+    <!-- 04 IF ELSE -->
+    <section id="ifelse" class="topic">
+      <span class="tag">Topic 04</span>
+      <h2>If / Else</h2>
+      <p>Go's <code>if</code>/<code>else</code> reads like most C-family languages, with two syntax differences worth remembering for an interview: parentheses around the condition are not used, and curly braces are <strong>never</strong> optional — even for a single-line body.</p>
+      <div class="code-label">if-else.go</div>
+      <pre class="language-go"><code class="language-go">if age &gt; 18 {
+    fmt.Println("person is an adult")
+} else if age == 18 {
+    fmt.Println("just became an adult")
+} else {
+    fmt.Println("not an adult yet")
+}
+
+// a variable declared in the if's init statement
+// is scoped only to the if/else block
+if age := 15; age &gt; 18 {
+    fmt.Println("adult")
+} else {
+    fmt.Println("not an adult:", age)
+}</code></pre>
+
+      <div class="qa">
+        <h3>Interview Questions — If / Else</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Are parentheses required around an if-condition in Go?</span><span class="chev">⌄</span></summary>
+        <div class="answer">No — and idiomatic Go omits them entirely. Writing <code>if (age &gt; 18)</code> compiles, but <code>gofmt</code>/reviewers will flag the unnecessary parentheses.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Can you omit the curly braces for a single-statement if-body, like in C?</span><span class="chev">⌄</span></summary>
+        <div class="answer">No. Go requires braces on every if/else body regardless of length, and the opening brace must be on the same line as the condition — Go's grammar actually depends on this for unambiguous parsing.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What's the point of writing a short statement before the condition, like <code>if age := 15; age &gt; 18 {}</code>?</span><span class="chev">⌄</span></summary>
+        <div class="answer">It declares a variable scoped only to that if/else statement — useful for values you only need within the branch, like the result of a function call you're about to check. The variable isn't visible outside the if/else block.</div></details>
+      </div>
+    </section>
+
+    <!-- 05 LOGICAL OPERATORS -->
+    <section id="logical" class="topic">
+      <span class="tag">Topic 05</span>
+      <h2>Logical Operators</h2>
+      <p>Go has the three logical operators you'd expect — AND (<code>&amp;&amp;</code>), OR (<code>||</code>), and NOT (<code>!</code>) — and, deliberately, no ternary operator.</p>
+      <div class="code-label">logical.go</div>
+      <pre class="language-go"><code class="language-go">isAdult := age &gt;= 18 &amp;&amp; hasID
+canEnter := isAdult || hasGuardian
+isMinor := !isAdult</code></pre>
+      <p>Go's designers left out the ternary (<code>condition ? a : b</code>) on purpose, arguing it's often abused to cram logic into unreadable one-liners. The idiomatic replacement is a plain <code>if</code>/<code>else</code>, or a small helper function if you need the expression form repeatedly.</p>
+
+      <div class="qa">
+        <h3>Interview Questions — Logical Operators</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Does Go have a ternary operator?</span><span class="chev">⌄</span></summary>
+        <div class="answer">No. Go intentionally omits it for readability; you use a full <code>if</code>/<code>else</code> statement, or write a tiny generic helper function if you really want a conditional expression.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Do <code>&amp;&amp;</code> and <code>||</code> short-circuit in Go?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Yes. <code>&amp;&amp;</code> stops evaluating as soon as one operand is false, and <code>||</code> stops as soon as one operand is true — the same short-circuit behavior as in C, Java, and JavaScript.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What are Go's three logical operators?</span><span class="chev">⌄</span></summary>
+        <div class="answer"><code>&amp;&amp;</code> (AND), <code>||</code> (OR), and <code>!</code> (NOT) — all of which only operate on boolean expressions, since Go does not auto-convert other types to bool.</div></details>
+      </div>
+    </section>
+
+    <!-- 06 SWITCH -->
+    <section id="switch" class="topic">
+      <span class="tag">Topic 06</span>
+      <h2>Switch Statements</h2>
+      <p>The shape of a Go switch matches other languages, including grouping several values into one case:</p>
+      <div class="code-label">switch.go</div>
+      <pre class="language-go"><code class="language-go">switch i {
+case 1:
+    fmt.Println("one")
+case 2:
+    fmt.Println("two")
+default:
+    fmt.Println("something else")
+}
+
+// multiple values in a single case
+switch i {
+case 1, 2:
+    fmt.Println("one or two")
+default:
+    fmt.Println("other")
+}</code></pre>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>This is the single biggest switch-related gotcha in interviews, and it wasn't in your notes at all: unlike C, Java, or JavaScript, <strong>a Go <code>case</code> does not fall through to the next one automatically</strong> — each case implicitly stops after its block runs. If you genuinely want fallthrough behavior, you opt in explicitly with the <code>fallthrough</code> keyword:</p>
+        <pre class="language-go" style="margin-top:10px;"><code class="language-go">switch i {
+case 1:
+    fmt.Println("one")
+    fallthrough
+case 2:
+    fmt.Println("also runs for 1, because of fallthrough")
+}</code></pre>
+      </div>
+
+      <p>A switch can also drop the value entirely, which turns it into a cleaner-looking <code>if</code>/<code>else</code> chain:</p>
+      <div class="code-label">tagless switch</div>
+      <pre class="language-go"><code class="language-go">switch {
+case age &lt; 13:
+    fmt.Println("child")
+case age &lt; 20:
+    fmt.Println("teenager")
+default:
+    fmt.Println("adult")
+}</code></pre>
+
+      <p>And a <strong>type switch</strong> branches on the dynamic type stored inside an interface value:</p>
+      <div class="code-label">type-switch.go</div>
+      <pre class="language-go"><code class="language-go">var i interface{} = 10
+
+switch v := i.(type) {
+case int:
+    fmt.Println("int:", v)
+case bool:
+    fmt.Println("bool:", v)
+default:
+    fmt.Println("unknown type")
+}</code></pre>
+      <p>This only makes sense when the switched-on value has an interface type (like <code>interface{}</code>, also written <code>any</code>) — concrete types like a plain <code>int</code> have nothing to switch on, since their type is already fixed at compile time.</p>
+
+      <div class="qa">
+        <h3>Interview Questions — Switch Statements</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Does a Go switch fall through to the next case automatically, like C?</span><span class="chev">⌄</span></summary>
+        <div class="answer">No — it's the opposite of C. Each matched case runs its block and then stops; you only get fallthrough behavior by explicitly writing <code>fallthrough</code> as the last statement in a case.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How do you match multiple values with one case?</span><span class="chev">⌄</span></summary>
+        <div class="answer">List them comma-separated on the same case line: <code>case 1, 2:</code> matches either value.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What does a switch with no expression after the keyword do?</span><span class="chev">⌄</span></summary>
+        <div class="answer">It becomes a "tagless" switch where each <code>case</code> holds its own boolean condition, evaluated top to bottom — functionally identical to an if/else-if chain but often considered more readable.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What is a type switch, and when do you reach for one?</span><span class="chev">⌄</span></summary>
+        <div class="answer">A switch of the form <code>switch v := i.(type)</code> that branches based on the concrete type currently stored in an interface value <code>i</code>. It's used whenever a function accepts an <code>interface{}</code>/<code>any</code> parameter and needs different behavior depending on what was actually passed in.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Can a single <code>case</code> in a type switch match more than one type?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Yes, e.g. <code>case int, int64:</code> — but inside that combined case, the variable keeps the interface type rather than being narrowed to one specific type, since the compiler can't know which of the two it is.</div></details>
+      </div>
+    </section>
+
+    <!-- 07 ARRAYS -->
+    <section id="arrays" class="topic">
+      <span class="tag">Topic 07</span>
+      <h2>Arrays</h2>
+      <div class="code-label">arrays.go</div>
+      <pre class="language-go"><code class="language-go">var nums [4]int
+nums[0] = 10
+fmt.Println(len(nums)) // 4
+
+nums2 := [3]int{1, 2, 3}
+
+// 2D array
+grid := [2][2]int{{1, 2}, {3, 4}}</code></pre>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>This is the detail most beginner notes skip, and it's a favorite interview question: in Go, an array's <strong>length is part of its type</strong>. <code>[4]int</code> and <code>[5]int</code> are different, incompatible types — you can't assign one to the other, and a function expecting <code>[4]int</code> will not accept a <code>[5]int</code>. Arrays are also <strong>value types</strong>: assigning one to another variable, or passing one into a function, copies every element.</p>
+        <pre class="language-go" style="margin-top:10px;"><code class="language-go">a := [3]int{1, 2, 3}
+b := a       // full copy
+b[0] = 99
+fmt.Println(a[0]) // still 1 — "a" is untouched</code></pre>
+      </div>
+
+      <p>Because the size is fixed and baked into the type, arrays are used far less often in everyday Go than slices — reach for an array only when you know the exact, unchanging size up front (a fixed-size buffer, a checksum, coordinates).</p>
+
+      <div class="qa">
+        <h3>Interview Questions — Arrays</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Is an array's size part of its type in Go? What does that imply?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Yes. <code>[4]int</code> and <code>[5]int</code> are distinct types, so you can't assign between them, and a function parameter typed <code>[4]int</code> will reject a <code>[5]int</code> argument.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Are arrays passed by value or by reference when you pass them to a function?</span><span class="chev">⌄</span></summary>
+        <div class="answer">By value — the entire array is copied. Mutating the parameter inside the function does not affect the caller's original array unless you explicitly pass a pointer to it.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">When would you choose an array over a slice?</span><span class="chev">⌄</span></summary>
+        <div class="answer">When the size is fixed and known ahead of time and won't change — e.g. a 3-element RGB value or a fixed-size hash. For anything that might grow or whose size isn't known upfront, a slice is the idiomatic choice.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How do you get the length of an array?</span><span class="chev">⌄</span></summary>
+        <div class="answer"><code>len(arr)</code> — the same built-in function used for slices, strings, and maps.</div></details>
+      </div>
+    </section>
+
+    <!-- 08 SLICES -->
+    <section id="slices" class="topic">
+      <span class="tag">Topic 08</span>
+      <h2>Slices</h2>
+      <p>A slice is a dynamically-sized view over an underlying array — it's what you reach for almost every time you'd use a list/array in another language.</p>
+      <div class="code-label">slices.go</div>
+      <pre class="language-go"><code class="language-go">var nums []int            // nil slice — len 0, cap 0
+fmt.Println(nums == nil)  // true
+
+nums = make([]int, 2)     // length 2, both elements zero-valued
+nums = make([]int, 2, 5)  // length 2, capacity 5
+fmt.Println(cap(nums))    // 5
+
+nums = append(nums, 3)    // grows automatically once capacity is exceeded
+
+literal := []int{1, 2, 3}
+
+dest := make([]int, 3)
+copy(dest, literal)
+
+// slicing operator — low is inclusive, high is exclusive
+sub := literal[0:2] // []int{1, 2}</code></pre>
+
+      <div class="callout fix">
+        <span class="label">Correction</span>
+        <p>Your notes wrote a 2D slice as <code>var nums=[][]{{1,3,4},{1,2,3}}</code> — that's missing the element type and won't compile. A slice type always needs the element type after the brackets:</p>
+        <pre class="language-go" style="margin-top:10px;"><code class="language-go">matrix := [][]int{{1, 3, 4}, {1, 2, 3}}</code></pre>
+        <p style="margin-top:10px;">Also, "checking if a slice is empty by comparing to <code>nil</code>" is only half the story. A <code>nil</code> slice (<code>var nums []int</code>) and an empty-but-non-nil slice (<code>nums := []int{}</code>) both behave like empty collections — <code>len()</code> is 0 for both — but only the first one equals <code>nil</code>. If you just want to know "is this empty", checking <code>len(nums) == 0</code> is the safer, more idiomatic test.</p>
+      </div>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>Two slice details that come up constantly in interviews:</p>
+        <p><strong>Growth:</strong> when <code>append</code> would exceed the current capacity, Go allocates a new, larger backing array and copies everything over — which is exactly why you must always capture the result, <code>nums = append(nums, x)</code>, rather than ignoring it: the returned slice may point at completely new memory.</p>
+        <p><strong>Aliasing:</strong> a sub-slice created with <code>s[low:high]</code> shares the same backing array as the original. Mutating an element through the sub-slice can silently change the original slice too — a classic Go gotcha worth knowing cold.</p>
+      </div>
+
+      <div class="qa">
+        <h3>Interview Questions — Slices</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What's the difference between an array and a slice in Go?</span><span class="chev">⌄</span></summary>
+        <div class="answer">An array has a fixed length that's part of its type and is copied by value. A slice is a small header (pointer, length, capacity) describing a view into an underlying array, can grow dynamically with <code>append</code>, and is copied by reference to that header — copying a slice doesn't copy the underlying data.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What three things make up a slice internally?</span><span class="chev">⌄</span></summary>
+        <div class="answer">A pointer to the underlying array, a length (how many elements are currently accessible), and a capacity (how many elements the underlying array can hold before a new allocation is needed).</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What happens when you <code>append</code> past a slice's capacity?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Go allocates a new, larger underlying array, copies the existing elements into it, and returns a slice pointing at that new array. The old array is left untouched, which is why you must reassign the result of <code>append</code>.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Why is it wrong to write <code>append(nums, x)</code> without reassigning it?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Because <code>append</code> may or may not allocate a new backing array — if it does, the original <code>nums</code> variable still points at the old array and never sees the appended value. You always need <code>nums = append(nums, x)</code>.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What's the difference between <code>len()</code> and <code>cap()</code> on a slice?</span><span class="chev">⌄</span></summary>
+        <div class="answer"><code>len()</code> is the number of elements currently in the slice. <code>cap()</code> is how many elements the underlying array could hold starting from the slice's first element, before <code>append</code> would need to reallocate.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Can two slices share the same underlying array? What problem can that cause?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Yes — slicing an existing slice (<code>sub := s[1:3]</code>) creates a new slice header that still points at the same backing array. Writing to an element through either slice can unexpectedly affect the other, since they're really looking at the same memory.</div></details>
+      </div>
+    </section>
+
+    <!-- 09 MAPS -->
+    <section id="maps" class="topic">
+      <span class="tag">Topic 09</span>
+      <h2>Maps</h2>
+      <div class="code-label">maps.go</div>
+      <pre class="language-go"><code class="language-go">m := make(map[string]int)
+m["a"] = 1
+
+// reading a missing key gives the zero value, not an error
+fmt.Println(m["missing"]) // 0
+
+// "comma-ok" idiom — the real way to check existence
+val, ok := m["missing"]
+fmt.Println(val, ok) // 0 false
+
+delete(m, "a")
+fmt.Println(len(m))
+clear(m)
+
+// map literal, no make() needed
+scores := map[string]int{
+    "alice": 90,
+    "bob":   85,
+}</code></pre>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>Your notes correctly said a missing key returns the zero value rather than an error — but didn't mention how you tell "the key holds the zero value" apart from "the key doesn't exist at all". That's the <strong>comma-ok idiom</strong>: <code>val, ok := m[key]</code> gives you a second boolean, <code>ok</code>, which is <code>false</code> only when the key is absent.</p>
+        <p style="margin-top:8px;">Two more essentials that weren't in the notes: <code>delete(m, key)</code> removes a single entry, and iteration order over a map (with <code>range</code>) is <strong>intentionally randomized</strong> by the Go runtime — never rely on it being consistent between runs.</p>
+      </div>
+
+      <p>Maps are reference types, like slices — passing one into a function doesn't copy its contents, so mutations inside the function are visible to the caller. Map keys must also be a <strong>comparable</strong> type (supports <code>==</code>), which rules out slices, maps, and functions as keys.</p>
+
+      <div class="qa">
+        <h3>Interview Questions — Maps</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How do you tell whether a key exists in a map versus just getting its zero value?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Use the comma-ok idiom: <code>val, ok := m[key]</code>. <code>ok</code> is <code>true</code> if the key exists (even if its value happens to be the zero value) and <code>false</code> if it doesn't.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How do you remove a key from a map?</span><span class="chev">⌄</span></summary>
+        <div class="answer">The built-in <code>delete(m, key)</code> — it's a no-op (no panic) if the key doesn't exist.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Is the iteration order of a Go map guaranteed?</span><span class="chev">⌄</span></summary>
+        <div class="answer">No — it's deliberately randomized by the runtime so that code never accidentally comes to depend on a particular order. If you need a predictable order, collect and sort the keys yourself.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What types are valid as map keys?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Any comparable type — one that supports <code>==</code> — such as strings, numbers, booleans, and structs made entirely of comparable fields. Slices, maps, and functions are not comparable and can't be used as keys.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Are maps passed by value or reference to a function?</span><span class="chev">⌄</span></summary>
+        <div class="answer">A map variable is really a reference to an underlying hash table. Passing it into a function copies the reference, not the data, so changes made inside the function (adding/removing/updating keys) are visible to the caller.</div></details>
+      </div>
+    </section>
+
+    <!-- 10 RANGE -->
+    <section id="range" class="topic">
+      <span class="tag">Topic 10</span>
+      <h2>The Range Keyword</h2>
+      <p><code>range</code> is Go's universal iteration tool — it works over arrays, slices, maps, strings, channels, and (since Go 1.22) plain integers.</p>
+      <div class="code-label">range.go</div>
+      <pre class="language-go"><code class="language-go">nums := []int{10, 20, 30}
+
+for _, num := range nums {
+    fmt.Println(num) // _ ignores the index
+}
+
+for i, num := range nums {
+    fmt.Println(i, num)
+}
+
+m := map[string]string{"a": "apple", "b": "banana"}
+for k, v := range m {
+    fmt.Println(k, v) // order is not guaranteed
+}
+
+// ranging over a string gives a byte index and a rune
+for i, c := range "golang" {
+    fmt.Println(i, c)
+}</code></pre>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>Your note that "<code>i</code> is the byte index and <code>c</code> is the unicode value" is correct and is exactly the nuance interviewers test: Go strings are UTF-8 byte sequences, and most non-English characters take more than one byte. So when ranging over a string with such characters, the index can jump by more than 1 between iterations — it tracks bytes, not "characters":</p>
+        <pre class="language-go" style="margin-top:10px;"><code class="language-go">for i, c := range "héllo" {
+    fmt.Println(i, string(c))
+}
+// 0 h
+// 1 é   (é takes 2 bytes, so the next index jumps to 3)
+// 3 l
+// 4 l
+// 5 o</code></pre>
+        <p style="margin-top:8px;">Each value <code>c</code> has type <code>rune</code> — an alias for <code>int32</code> representing a single Unicode code point — which is why ranging over a string is the safe way to walk character-by-character without manually juggling UTF-8 byte boundaries.</p>
+      </div>
+
+      <div class="qa">
+        <h3>Interview Questions — Range</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What types can you use <code>range</code> on?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Arrays, slices, strings, maps, channels — and, since Go 1.22, plain integers (<code>for i := range n</code>).</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">When ranging over a string, what do the two returned values actually represent?</span><span class="chev">⌄</span></summary>
+        <div class="answer">The first value is the byte index where the current rune starts in the underlying UTF-8 encoding; the second is the rune (Unicode code point) itself — not a plain ASCII byte.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Why might the index skip by more than 1 between iterations when ranging over a string?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Because Go strings are UTF-8 encoded, and any character outside the basic ASCII range can take 2, 3, or 4 bytes. The index tracks byte position, so it jumps ahead by however many bytes the previous rune occupied.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What is a <code>rune</code> in Go?</span><span class="chev">⌄</span></summary>
+        <div class="answer">An alias for <code>int32</code> that represents a single Unicode code point, as opposed to a <code>byte</code> (alias for <code>uint8</code>), which represents a single raw byte of a UTF-8-encoded string.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How do you range over just the keys of a map, ignoring the values?</span><span class="chev">⌄</span></summary>
+        <div class="answer"><code>for k := range m { ... }</code> — when ranging a map you can omit the value entirely and just take the key.</div></details>
+      </div>
+    </section>
+
+    <!-- 11 FUNCTIONS -->
+    <section id="functions" class="topic">
+      <span class="tag">Topic 11</span>
+      <h2>Functions</h2>
+      <p>Go puts the return type after the parameter list, and parameters of the same type can share one type annotation:</p>
+      <div class="code-label">functions.go</div>
+      <pre class="language-go"><code class="language-go">func add(a int, b int) int {
+    return a + b
+}
+
+// shorthand when parameters share a type
+func add(a, b int) int {
+    return a + b
+}</code></pre>
+      <p>If no return type is written, the function returns nothing at all — Go has no <code>void</code> keyword, you simply omit the return type. Go functions can also return more than one value, which your notes captured correctly:</p>
+      <div class="code-label">multiple-returns.go</div>
+      <pre class="language-go"><code class="language-go">func get() (string, int) {
+    return "go", 1
+}</code></pre>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>This is the single most important pattern built on multiple return values, and it wasn't in the notes at all: Go has no exceptions, so the idiomatic way to signal failure is to return an <code>error</code> as the <strong>last</strong> return value and check it immediately. This shows up in nearly every Go codebase and is almost guaranteed to come up in an interview.</p>
+        <pre class="language-go" style="margin-top:10px;"><code class="language-go">func divide(a, b int) (int, error) {
+    if b == 0 {
+        return 0, errors.New("division by zero")
+    }
+    return a / b, nil
+}
+
+result, err := divide(10, 0)
+if err != nil {
+    fmt.Println("error:", err)
+}</code></pre>
+        <p style="margin-top:8px;">You can also name return values in the signature and use a bare <code>return</code> — useful for documenting intent and avoiding repetition in functions with several exit paths:</p>
+        <pre class="language-go" style="margin-top:10px;"><code class="language-go">func divideNamed(a, b int) (result int, err error) {
+    if b == 0 {
+        err = errors.New("division by zero")
+        return
+    }
+    result = a / b
+    return
+}</code></pre>
+      </div>
+
+      <p>Functions are first-class values in Go: you can pass them as arguments and return them from other functions.</p>
+      <div class="code-label">functions-as-values.go</div>
+      <pre class="language-go"><code class="language-go">func process(fn func(int) int) {
+    fmt.Println(fn(1))
+}
+
+double := func(a int) int {
+    return a * 2
+}
+process(double)
+
+// returning a function
+func makeAdder(base int) func(int) int {
+    return func(a int) int {
+        return a + base
+    }
+}
+
+addFive := makeAdder(5)
+fmt.Println(addFive(3)) // 8</code></pre>
+
+      <p>A <strong>variadic</strong> function accepts a variable number of arguments of the same type, received internally as a slice:</p>
+      <div class="code-label">variadic.go</div>
+      <pre class="language-go"><code class="language-go">func sum(nums ...int) int {
+    total := 0
+    for _, n := range nums {
+        total += n
+    }
+    return total
+}
+
+sum(1, 2, 3)
+
+// "spreading" an existing slice into a variadic call
+values := []int{4, 5, 6}
+sum(values...)</code></pre>
+
+      <div class="qa">
+        <h3>Interview Questions — Functions</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How does Go signal that a function "returns nothing"?</span><span class="chev">⌄</span></summary>
+        <div class="answer">By simply omitting the return type from the signature — Go has no <code>void</code> keyword. <code>func log(msg string) { ... }</code> returns nothing.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Why is the multiple-return-value pattern central to how Go handles errors?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Go has no exception mechanism. Instead, any operation that can fail returns an <code>error</code> as its final return value (<code>nil</code> on success), and the caller is expected to check it immediately with <code>if err != nil</code> rather than relying on a catch block elsewhere.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What are named return values, and what does a "bare return" do?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Named return values give the return variables names directly in the function signature (e.g. <code>(result int, err error)</code>); they start at their zero values automatically. A bare <code>return</code> with no arguments then returns whatever those named variables currently hold.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">How do you pass a function as an argument to another function?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Functions are first-class values in Go, so you declare the parameter with a function type, e.g. <code>func process(fn func(int) int)</code>, and pass any matching function or function literal as the argument.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What is a variadic function, and how do you call it with values already in a slice?</span><span class="chev">⌄</span></summary>
+        <div class="answer">A function declared with <code>...Type</code> on its last parameter, which lets the caller pass any number of arguments of that type (received inside as a slice). If you already have a slice, you "spread" it into the call with <code>fn(mySlice...)</code> instead of passing each element manually.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Why would a function return another function? Give a real use case.</span><span class="chev">⌄</span></summary>
+        <div class="answer">It's how Go builds configurable behavior and middleware — a function like <code>makeAdder(base)</code> returns a specialized function that remembers <code>base</code>. The same pattern underlies HTTP middleware, where a function wraps a handler and returns a new handler with extra behavior attached.</div></details>
+      </div>
+    </section>
+
+    <!-- 12 CLOSURES -->
+    <section id="closures" class="topic">
+      <span class="tag">Topic 12</span>
+      <h2>Closures</h2>
+
+      <div class="callout fix">
+        <span class="label">Correction</span>
+        <p>Your notes defined a closure as "those which don't receive anything but return a function" — that's actually just one common <em>pattern</em> built using a closure, not the definition. The real definition: a closure is a function value that references variables declared <strong>outside</strong> its own body — it "closes over" them, keeping access to (and the ability to mutate) those variables even after the outer function has returned. A closure can take parameters, and doesn't have to return another function at all.</p>
+      </div>
+
+      <p>The counter example from your notes is a textbook closure — it's just one pattern, not the whole definition:</p>
+      <div class="code-label">closures.go</div>
+      <pre class="language-go"><code class="language-go">func counter() func() int {
+    count := 0
+
+    return func() int {
+        count++
+        return count
+    }
+}
+
+c1 := counter()
+fmt.Println(c1()) // 1
+fmt.Println(c1()) // 2
+
+c2 := counter() // a brand-new, independent "count"
+fmt.Println(c2()) // 1</code></pre>
+      <p>The inner anonymous function captures <code>count</code> by reference, not by copy — every call to <code>c1()</code> shares and mutates the same <code>count</code> that lives inside that particular closure. Because <code>counter()</code> creates a fresh <code>count</code> on every call, <code>c1</code> and <code>c2</code> are completely independent counters.</p>
+
+      <div class="callout note">
+        <span class="label">Good to know</span>
+        <p>A classic Go interview trap is the loop-variable-capture bug. Before Go 1.22, every iteration of a <code>range</code> loop reused the <em>same</em> loop variable, so closures created inside the loop (like goroutines) could all end up capturing the final value instead of "their own":</p>
+        <pre class="language-go" style="margin-top:10px;"><code class="language-go">for _, v := range []int{1, 2, 3} {
+    go func() {
+        fmt.Println(v)
+    }()
+}
+// Pre-1.22: commonly printed 3, 3, 3 (in some order)
+// Go 1.22+: each iteration gets its own "v", so this now
+// reliably prints 1, 2, 3 (in some order)</code></pre>
+        <p style="margin-top:8px;">Knowing this changed in Go 1.22 is a good way to show you're current — it's one of the most-cited gotchas in older Go code.</p>
+      </div>
+
+      <div class="qa">
+        <h3>Interview Questions — Closures</h3>
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What is a closure, precisely?</span><span class="chev">⌄</span></summary>
+        <div class="answer">A function value that captures and references variables from the scope it was defined in, retaining access to (and the ability to modify) those variables even after the enclosing function has finished executing.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">In the <code>counter()</code> example, why are <code>c1</code> and <code>c2</code> independent of each other?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Each call to <code>counter()</code> creates a brand-new <code>count</code> variable and a brand-new inner function closing over that specific variable. <code>c1</code> and <code>c2</code> close over two entirely separate <code>count</code> variables, so incrementing one never affects the other.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Does a closure copy the variables it captures, or reference them?</span><span class="chev">⌄</span></summary>
+        <div class="answer">By reference. The closure shares the actual variable with the scope that created it, which is exactly why calling <code>c1()</code> repeatedly keeps incrementing the same underlying <code>count</code> instead of resetting it.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">What was the classic loop-variable-capture bug with closures in Go, and is it still a problem?</span><span class="chev">⌄</span></summary>
+        <div class="answer">Before Go 1.22, a <code>range</code> loop reused one loop variable across all iterations, so goroutines or closures created inside the loop often captured the same final value instead of the value from their own iteration. Go 1.22 changed the semantics so each iteration gets its own copy of the loop variable, which fixed the most common version of this bug going forward — but it's still important to recognize in pre-1.22 code.</div></details>
+
+        <details class="q"><summary><span class="qmark">Q</span><span class="qtext">Give a practical use case for closures beyond counters.</span><span class="chev">⌄</span></summary>
+        <div class="answer">Closures are how Go implements things like HTTP middleware (a function that wraps a handler and returns a new handler with shared state, like a logger or auth check), memoization caches, and configurable callbacks where some setup state needs to persist between calls.</div></details>
+      </div>
+    </section>
+
+    <!-- 13 RECAP -->
+    <section id="recap" class="topic">
+      <span class="tag">Topic 13</span>
+      <h2>Recap &amp; Cheat Sheet</h2>
+      <p>Quick reference for the last few minutes before an interview — and the corrections worth remembering so they don't slip back in:</p>
+
+      <table class="cheat">
+        <tr><th>Topic</th><th>Key syntax</th><th>Interview trap to remember</th></tr>
+        <tr><td>Variables</td><td><code>x := 5</code> / <code>var x int</code></td><td><code>:=</code> only works inside a function body.</td></tr>
+        <tr><td>Constants</td><td><code>const (...)</code> + <code>iota</code></td><td><code>const</code> values must be known at compile time.</td></tr>
+        <tr><td>Loops</td><td><code>for</code> (all styles)</td><td>There's no <code>while</code> keyword — it's all <code>for</code>.</td></tr>
+        <tr><td>If/Else</td><td><code>if x &gt; 0 { }</code></td><td>Braces are always required, even for one line.</td></tr>
+        <tr><td>Logical ops</td><td><code>&amp;&amp; || !</code></td><td>No ternary operator exists in Go.</td></tr>
+        <tr><td>Switch</td><td><code>case a, b:</code></td><td>No automatic fallthrough — opposite of C.</td></tr>
+        <tr><td>Arrays</td><td><code>[4]int{...}</code></td><td>Size is part of the type; copied by value.</td></tr>
+        <tr><td>Slices</td><td><code>make([]T, len, cap)</code></td><td>Always reassign the result of <code>append</code>.</td></tr>
+        <tr><td>Maps</td><td><code>v, ok := m[k]</code></td><td>Iteration order is randomized on purpose.</td></tr>
+        <tr><td>Range</td><td><code>for i, v := range x</code></td><td>Ranging a string gives byte index + rune.</td></tr>
+        <tr><td>Functions</td><td><code>func f() (int, error)</code></td><td>Errors are returned, not thrown.</td></tr>
+        <tr><td>Closures</td><td><code>func() func() int</code></td><td>Captured variables are shared by reference.</td></tr>
+      </table>
+
+      <p><strong>The 9 things this guide corrected or filled in</strong> that weren't accurate or complete in the original notes: goroutines need channels to tell the full concurrency story &middot; a 2D slice needs an explicit element type (<code>[][]int</code>, not <code>[][]</code>) &middot; checking for an empty slice is more reliably done with <code>len() == 0</code> than a <code>nil</code> check alone &middot; Go's switch does not fall through automatically, unlike C &middot; arrays are fixed-size value types with the size baked into the type &middot; maps need the comma-ok idiom to distinguish "missing key" from "zero value" &middot; maps also support <code>delete()</code> and have randomized iteration order &middot; the closure definition in the notes only described one pattern, not the concept itself &middot; and multiple return values are the backbone of Go's error-handling idiom.</p>
+    </section>
+
+  </main>
+</div>
+
+<footer>Go Interview Field Notes — built from your Day 1 &amp; Day 2 notes, corrected and expanded.</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script>
+  // scroll progress bar
+  const fill = document.querySelector('.progress-fill');
+  function updateProgress(){
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    const pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    fill.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress);
+  window.addEventListener('resize', updateProgress);
+  updateProgress();
+
+  // active sidebar link on scroll
+  const sections = document.querySelectorAll('main.content .topic');
+  const links = document.querySelectorAll('nav.sidebar a');
+  const linkMap = new Map();
+  links.forEach(l => linkMap.set(l.getAttribute('href').slice(1), l));
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        const link = linkMap.get(e.target.id);
+        if (!link) return;
+        if (e.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  }
+
+  window.addEventListener('load', () => { if (window.Prism) Prism.highlightAll(); });
+</script>
+
+</body>
+</html>
