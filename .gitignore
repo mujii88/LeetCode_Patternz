@@ -1,3 +1,10 @@
-# Large media — keep locally, link from README
+# Large media — keep locally
 *.mp4
 *.pdf
+
+# Go guides — maintained separately
+GO_GUIDE.html
+Go_first_section.html
+Go_Second_Section.html
+Go_*.html
+GO_*.html
